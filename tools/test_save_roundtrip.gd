@@ -45,6 +45,10 @@ func _initialize() -> void:
 	ok = _check(not gs.save_exists(), "delete_save") and ok
 	# Hitstop overlap check: the earlier (shorter) call must not reset the latest one.
 	var hs: Node = root.get_node("Hitstop")
+	# Let a few ordinary frames pass first: the first frames after boot carry a large delta
+	# (startup time), which would fire every pending timer in one tick and make this check flaky.
+	for i in 3:
+		await process_frame
 	hs.slow(0.5, 0.05)
 	hs.slow(0.2, 0.15)
 	await create_timer(0.1, true, false, true).timeout
