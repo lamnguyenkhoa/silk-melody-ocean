@@ -23,12 +23,20 @@ const DUMMY_DROP_HEIGHT: float = 24.0
 ## P3 only: the RoomLoader stub (P6) does not respawn, so the world puts the player back at
 ## PlayerStart after the death transition.
 const P3_RESPAWN_FALLBACK_DELAY: float = 1.0
+## Debug only, until RoomLoader exits work in P6: F6 / F7 jump to the previous / next room.
+const DEBUG_ROOMS: Array[String] = [
+	"res://scenes/rooms/dirt_cave_0.tscn",
+	"res://scenes/rooms/dirt_cave_1.tscn",
+	"res://scenes/rooms/dirt_cave_2.tscn",
+	"res://scenes/rooms/dirt_cave_3.tscn",
+]
 
 @onready var room_container: Node2D = $RoomContainer
 @onready var player: Player = $Player
 @onready var camera: GameCamera = $GameCamera
 
 var current_room: Node
+var _debug_room_index: int = 0
 
 func _ready() -> void:
 	camera.target = player
@@ -116,3 +124,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			GameState.add_lifeblood(1)
 		KEY_F12:
 			GameState.add_silk(GameState.max_silk)
+		KEY_F6, KEY_F7:
+			var step: int = -1 if key.keycode == KEY_F6 else 1
+			_debug_room_index = posmod(_debug_room_index + step, DEBUG_ROOMS.size())
+			_load_room_direct(DEBUG_ROOMS[_debug_room_index])
+			print("debug room: ", DEBUG_ROOMS[_debug_room_index])
