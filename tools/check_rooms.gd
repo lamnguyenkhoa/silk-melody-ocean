@@ -18,6 +18,7 @@ func _check(cond: bool, msg: String) -> void:
 
 
 func _initialize() -> void:
+	await process_frame # autoloads must exist before enemy scripts compile
 	var rooms: Array[Node] = []
 	for n in 4:
 		var ps: PackedScene = load("res://scenes/rooms/dirt_cave_%d.tscn" % n)
@@ -60,6 +61,11 @@ func _check_room(n: int, room: Node, rooms: Array[Node]) -> void:
 				var tgt := _room_by_name(rooms, e.level_name)
 				_check(tgt != null and tgt.get_node_or_null(e.spawn_pos_name) is Marker2D \
 					and tgt.get_node(e.spawn_pos_name).is_in_group("spawn_points"), "%s target %s/%s exists" % [e.name, e.level_name, e.spawn_pos_name])
+		elif c.is_in_group("enemy_spawns"):
+			var script_name: String = (c.get_script() as Script).resource_path.get_file()
+			print("  enemy %s (%s) pos=%s unity '%s' solid_cell=%s" % [c.name, script_name, (c as Node2D).position, c.get_meta("unity_name"), _is_solid(room, (c as Node2D).position)])
+			_check(c is CharacterBody2D and script_name == String(c.get_meta("enemy_type")).to_lower() + ".gd", "%s is a real %s enemy instance" % [c.name, c.get_meta("enemy_type")])
+			_check(not _is_solid(room, (c as Node2D).position), "%s starts in empty space" % c.name)
 		elif c is Marker2D:
 			var kind := "marker"
 			if c.is_in_group("spawn_points"):

@@ -9,11 +9,16 @@ extends CharacterBody2D
 
 ## Physics layer bits (project.godot layer names).
 const LAYER_GROUND: int = 1
+const LAYER_PLAYER: int = 2
 const LAYER_ENEMY: int = 4
 const LAYER_DEAD_ENEMY: int = 64
 
 ## Unity gravity 9.81 u/s^2 -> px/s^2 (Rigidbody2D.gravityScale multiplies this).
 const UNITY_GRAVITY: float = 9.81 * 16.0
+## Unity default 2D physics material: friction 0.4 (enemy and tile colliders both have no material,
+## Box2D mixes sqrt(0.4 * 0.4) = 0.4). Ground friction decelerates a body by friction * g * gravity_scale
+## per second while it rests on the floor (Box2D clamps the friction impulse to mu * normal impulse).
+const GROUND_FRICTION: float = 0.4
 ## Unity: Enemy.StopMoving 0.25 s.
 const STOP_MOVING_TIME: float = 0.25
 ## Unity: Enemy.iFrame 0.05 s.
@@ -62,6 +67,8 @@ const HIT_SFX_PATH := "res://assets/sfx/hit_enemy.ogg"
 # --- Physics (Rigidbody2D.gravityScale / linearDrag of the prefab) ---
 @export var gravity_scale: float = 1.0
 @export var drag: float = 0.0
+## Unity default material friction (see GROUND_FRICTION); 0 disables ground friction.
+@export var friction: float = GROUND_FRICTION
 
 var current_hp: int = 0
 var is_invulnerable: bool = false
@@ -100,6 +107,23 @@ func _ready() -> void:
 	if hit_sfx != null and hit_sfx.stream == null:
 		hit_sfx.stream = load(HIT_SFX_PATH) as AudioStream
 
+## The player node (group "player"), or null.
+func get_player() -> Node2D:
+	return get_tree().get_first_node_in_group("player") as Node2D
+
+## Unity Physics2D.OverlapCircle(transform.position, radius, playerMask): true when the circle
+## touches the player's body collider.
+func player_in_circle(radius: float) -> bool:
+	var q := PhysicsShapeQueryParameters2D.new()
+	var circle := CircleShape2D.new()
+	circle.radius = radius
+	q.shape = circle
+	q.transform = Transform2D(0.0, global_position)
+	q.collision_mask = LAYER_PLAYER
+	q.collide_with_bodies = true
+	q.collide_with_areas = false
+	return not get_world_2d().direct_space_state.intersect_shape(q, 1).is_empty()
+
 ## Override in AI scripts. Not called after death.
 func _ai_process(_delta: float) -> void:
 	pass
@@ -111,6 +135,8 @@ func _physics_process(delta: float) -> void:
 	velocity.y += UNITY_GRAVITY * gravity_scale * delta
 	# Unity linear drag (plan 0.7)
 	velocity *= 1.0 / (1.0 + drag * delta)
+	if is_on_floor():
+		velocity.x = move_toward(velocity.x, 0.0, friction * UNITY_GRAVITY * gravity_scale * delta)
 	move_and_slide()
 
 func _process(delta: float) -> void:
@@ -190,8 +216,9 @@ func death() -> void:
 		contact_area.set_deferred("monitorable", false)
 	if sprite != null:
 		sprite.modulate = Color(DEAD_TINT, DEAD_TINT, DEAD_TINT, sprite.modulate.a)
-	if visual != null:
-		visual.scale.y = -1.0
+	# Unity flips the Sprite child (not the root), so a sprite offset keeps its position.
+	if sprite != null:
+		sprite.scale.y = -absf(sprite.scale.y)
 	set_deferred("collision_layer", LAYER_DEAD_ENEMY)
 	if anim != null:
 		anim.stop()

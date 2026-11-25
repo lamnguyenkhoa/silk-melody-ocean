@@ -1,0 +1,31 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/loot/loot.gd" id="1_01umk"]
+[ext_resource type="Texture2D" path="res://assets/props/CopperShard.png" id="2_6mdjo"]
+[ext_resource type="AudioStream" path="res://assets/sfx/loot_pickup.ogg" id="3_dyds6"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nwktx"]
+size = Vector2(5.754814, 6.850027)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6w4ea"]
+size = Vector2(5.754814, 6.850027)
+
+[node name="CopperShardSmall" type="CharacterBody2D" unique_id=961484315]
+script = ExtResource("1_01umk")
+
+[node name="Body" type="CollisionShape2D" parent="." unique_id=536917437]
+position = Vector2(0.3011818, -0.08214092)
+shape = SubResource("RectangleShape2D_nwktx")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=4728808]
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("2_6mdjo")
+
+[node name="PickupArea" type="Area2D" parent="." unique_id=1323354122]
+
+[node name="Shape" type="CollisionShape2D" parent="PickupArea" unique_id=1885780540]
+position = Vector2(0.3011818, -0.08214092)
+shape = SubResource("RectangleShape2D_6w4ea")
+
+[node name="PickupSfx" type="AudioStreamPlayer" parent="." unique_id=1439027383]
+stream = ExtResource("3_dyds6")

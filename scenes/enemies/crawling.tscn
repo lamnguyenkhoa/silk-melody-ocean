@@ -1,0 +1,101 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/crawling.gd" id="1_5iyp0"]
+[ext_resource type="PackedScene" path="res://scenes/loot/loot.tscn" id="2_lp8qw"]
+[ext_resource type="Texture2D" path="res://assets/enemies/Crawling.png" id="3_hf7gs"]
+[ext_resource type="AudioStream" path="res://assets/sfx/hit_enemy.ogg" id="4_kudtw"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_utxuu"]
+size = Vector2(18.10759, 10.534573)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c2mdi"]
+atlas = ExtResource("3_hf7gs")
+region = Rect2(27, 81, 74, 42)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ks1if"]
+atlas = ExtResource("3_hf7gs")
+region = Rect2(155, 85, 75, 39)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8axr6"]
+atlas = ExtResource("3_hf7gs")
+region = Rect2(284, 87, 71, 36)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_suw60"]
+atlas = ExtResource("3_hf7gs")
+region = Rect2(411, 85, 75, 39)
+
+[sub_resource type="Animation" id="Animation_3l30m"]
+length = 0.68333334
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visual/Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.16666667, 0.33333334, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [SubResource("AtlasTexture_c2mdi"), SubResource("AtlasTexture_ks1if"), SubResource("AtlasTexture_8axr6"), SubResource("AtlasTexture_suw60")]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_t3xi7"]
+_data = {
+&"idle": SubResource("Animation_3l30m")
+}
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mrutb"]
+size = Vector2(18.10759, 10.534573)
+
+[sub_resource type="Curve" id="Curve_2tefi"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[node name="Crawling" type="CharacterBody2D" unique_id=674897313]
+script = ExtResource("1_5iyp0")
+drop_amount = 3
+loot_scene = ExtResource("2_lp8qw")
+drag = 1.0
+
+[node name="Body" type="CollisionShape2D" parent="." unique_id=455092527]
+position = Vector2(-0.21030807, -0.2644863)
+shape = SubResource("RectangleShape2D_utxuu")
+
+[node name="Visual" type="Node2D" parent="." unique_id=1791530701]
+
+[node name="Sprite2D" type="Sprite2D" parent="Visual" unique_id=1293929885]
+scale = Vector2(0.25, 0.25)
+texture = SubResource("AtlasTexture_c2mdi")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Visual" unique_id=1677958035]
+root_node = NodePath("../..")
+callback_mode_process = 0
+callback_mode_method = 1
+libraries/ = SubResource("AnimationLibrary_t3xi7")
+autoplay = &"idle"
+
+[node name="ContactArea" type="Area2D" parent="." unique_id=493428927]
+
+[node name="Shape" type="CollisionShape2D" parent="ContactArea" unique_id=1775709194]
+position = Vector2(-0.21030807, -0.2644863)
+shape = SubResource("RectangleShape2D_mrutb")
+
+[node name="LootPos" type="Marker2D" parent="." unique_id=1453603584]
+
+[node name="HitParticles" type="CPUParticles2D" parent="." unique_id=449445326]
+emitting = false
+amount = 6
+lifetime = 0.35
+one_shot = true
+explosiveness = 1.0
+spread = 30.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 60.0
+initial_velocity_max = 140.0
+scale_amount_min = 1.5
+scale_amount_max = 2.5
+scale_amount_curve = SubResource("Curve_2tefi")
+
+[node name="HitSfx" type="AudioStreamPlayer" parent="." unique_id=44591879]
+stream = ExtResource("4_kudtw")

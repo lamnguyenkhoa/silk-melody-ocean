@@ -7,6 +7,12 @@ const DATA_DIR := "res://tools/room_data/"
 const ROOM_DIR := "res://scenes/rooms/"
 const TILESET_PATH := "res://scenes/rooms/sunnyland_tileset.tres"
 const EXIT_SCENE := "res://scenes/interactables/room_exit.tscn"
+## Enemy type (from the Unity prefab GUID) -> scene (P5; P1 emitted Marker2D placeholders).
+const ENEMY_SCENES := {
+	"Crawling": "res://scenes/enemies/crawling.tscn",
+	"Dipsa": "res://scenes/enemies/dipsa.tscn",
+	"Crabber": "res://scenes/enemies/crabber.tscn",
+}
 const ROOM_COUNT := 4
 const TILE := 16
 const GROUND_LAYER_BIT := 1 # physics layer 1 = Ground
@@ -14,6 +20,7 @@ const LAYER_Z := {"Background": -10, "Tilemap": 0, "Foreground": 10}
 
 
 func _initialize() -> void:
+	await process_frame # autoloads must exist before the enemy scripts compile
 	var ok := _build()
 	quit(0 if ok else 1)
 
@@ -120,7 +127,10 @@ func _build_room(n: int, d: Dictionary, tileset: TileSet, exit_scene: PackedScen
 	for e: Dictionary in d["enemies"]:
 		var t: String = e["type"]
 		type_counts[t] = int(type_counts.get(t, 0)) + 1
-		var m := Marker2D.new()
+		if not ENEMY_SCENES.has(t):
+			push_error("no enemy scene for type " + t)
+			return false
+		var m: Node2D = (load(ENEMY_SCENES[t] as String) as PackedScene).instantiate()
 		m.name = t if type_counts[t] == 1 else "%s%d" % [t, type_counts[t]]
 		m.position = Vector2(e["pos"][0], e["pos"][1])
 		m.set_meta("enemy_type", t)

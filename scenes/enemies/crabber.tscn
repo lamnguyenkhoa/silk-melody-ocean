@@ -1,0 +1,149 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/crabber.gd" id="1_j2ud4"]
+[ext_resource type="PackedScene" path="res://scenes/loot/loot.tscn" id="2_8n74f"]
+[ext_resource type="Texture2D" path="res://assets/enemies/Crabber.png" id="3_dnrb6"]
+[ext_resource type="AudioStream" path="res://assets/sfx/hit_enemy.ogg" id="4_whe3c"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_aphsn"]
+size = Vector2(17.798477, 10.173643)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rhcbi"]
+atlas = ExtResource("3_dnrb6")
+region = Rect2(40, 50, 86, 76)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rp782"]
+atlas = ExtResource("3_dnrb6")
+region = Rect2(414, 45, 98, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bavpx"]
+atlas = ExtResource("3_dnrb6")
+region = Rect2(517, 48, 114, 77)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0b6p4"]
+atlas = ExtResource("3_dnrb6")
+region = Rect2(653, 48, 111, 78)
+
+[sub_resource type="Animation" id="Animation_uiwhn"]
+length = 1.35
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visual/Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.33333334, 0.6666667, 1),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [SubResource("AtlasTexture_rp782"), SubResource("AtlasTexture_bavpx"), SubResource("AtlasTexture_rp782"), SubResource("AtlasTexture_0b6p4")]
+}
+tracks/1/type = "method"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.33333334, 1, 1.3333334),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"values": [{
+"args": [],
+"method": &"begin_attack"
+}, {
+"args": [],
+"method": &"dash_forward"
+}, {
+"args": [],
+"method": &"dash_forward"
+}, {
+"args": [],
+"method": &"end_attack"
+}]
+}
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_daiug"]
+atlas = ExtResource("3_dnrb6")
+region = Rect2(167, 53, 85, 71)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qytom"]
+atlas = ExtResource("3_dnrb6")
+region = Rect2(298, 50, 83, 74)
+
+[sub_resource type="Animation" id="Animation_5sx2e"]
+length = 0.51666665
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visual/Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.16666667, 0.33333334),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [SubResource("AtlasTexture_rhcbi"), SubResource("AtlasTexture_daiug"), SubResource("AtlasTexture_qytom")]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_dhdiw"]
+_data = {
+&"attack": SubResource("Animation_uiwhn"),
+&"idle": SubResource("Animation_5sx2e")
+}
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tbtkw"]
+size = Vector2(17.798477, 10.173643)
+
+[sub_resource type="Curve" id="Curve_2efdf"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[node name="Crabber" type="CharacterBody2D" unique_id=23014920]
+script = ExtResource("1_j2ud4")
+max_hp = 12
+enemy_type = 3
+drop_amount = 4
+loot_scene = ExtResource("2_8n74f")
+drag = 1.0
+
+[node name="Body" type="CollisionShape2D" parent="." unique_id=1103095976]
+shape = SubResource("RectangleShape2D_aphsn")
+
+[node name="Visual" type="Node2D" parent="." unique_id=419298202]
+
+[node name="Sprite2D" type="Sprite2D" parent="Visual" unique_id=463750879]
+position = Vector2(0, -4.8)
+scale = Vector2(0.25, 0.25)
+texture = SubResource("AtlasTexture_rhcbi")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Visual" unique_id=293403001]
+root_node = NodePath("../..")
+callback_mode_process = 0
+callback_mode_method = 1
+libraries/ = SubResource("AnimationLibrary_dhdiw")
+autoplay = &"idle"
+
+[node name="ContactArea" type="Area2D" parent="." unique_id=533458066]
+
+[node name="Shape" type="CollisionShape2D" parent="ContactArea" unique_id=1711364839]
+shape = SubResource("RectangleShape2D_tbtkw")
+
+[node name="LootPos" type="Marker2D" parent="." unique_id=1527100886]
+
+[node name="HitParticles" type="CPUParticles2D" parent="." unique_id=247453979]
+emitting = false
+amount = 6
+lifetime = 0.35
+one_shot = true
+explosiveness = 1.0
+spread = 30.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 60.0
+initial_velocity_max = 140.0
+scale_amount_min = 1.5
+scale_amount_max = 2.5
+scale_amount_curve = SubResource("Curve_2efdf")
+
+[node name="HitSfx" type="AudioStreamPlayer" parent="." unique_id=889086495]
+stream = ExtResource("4_whe3c")
