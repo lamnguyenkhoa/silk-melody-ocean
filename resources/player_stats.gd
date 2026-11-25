@@ -41,3 +41,46 @@ extends Resource
 @export var dust_offset: Vector2 = Vector2(1.7, 13.4)
 ## Unity: HandleMovement speedModifier while slowed (hard-coded 0.5f).
 @export var slowed_speed_modifier: float = 0.5
+
+# --- P3: combat tuning (Player.cs / Tenroh.prefab values, Godot space) ---
+
+## Unity: HandleAttack verInput >= 0.1 / <= -0.1 thresholds.
+@export var ver_input_threshold: float = 0.1
+## Unity: AttackDealDamage normal slash local position (1, 0) -> px.
+@export var slash_forward_pos: Vector2 = Vector2(16, 0)
+## Unity: AttackDealDamage up slash local position (0, 0.5) -> px, y flipped.
+@export var slash_up_pos: Vector2 = Vector2(0, -8)
+## Unity: AttackDealDamage up slash local rotation +90 deg -> -90 deg (y flipped).
+@export var slash_up_rotation_deg: float = -90.0
+
+## Unity: Damaged() rb.AddForce(knockbackDir * 5 + up * 5) -> px/s. Horizontal part.
+@export var hurt_knockback: float = 80.0
+## Unity: Damaged() rb.AddForce(... + Vector3.up * 5) -> (0, -80) px/s.
+@export var hurt_knockback_up: Vector2 = Vector2(0, -80)
+## Unity: DamagedFreezeTime 0.35 s (real time) per point of damage.
+@export var hurt_freeze_per_damage: float = 0.35
+## Unity: CinemachineShake.ShakeCamera(5, 0.3, true) from Damaged().
+@export var damage_shake_intensity: float = 5.0
+@export var damage_shake_time: float = 0.3
+## Unity: Damaged() hurt spark random rotation +-15 deg.
+@export var hurt_spark_rotation_deg: float = 15.0
+## Unity: IFrame() sprite alpha 0.5.
+@export var i_frame_alpha: float = 0.5
+## Unity: contact damage amount (OnCollisionEnter2D -> Damaged(1, ...)).
+@export var contact_damage: int = 1
+
+## Unity: ParryRipose freeze (WaitForSecondsRealtime 0.35).
+@export var parry_freeze_time: float = 0.35
+## Unity: ParryRipose dash force multiplier (dashForce * 1.5).
+@export var riposte_dash_multiplier: float = 1.5
+## Unity: ParryRipose "Bonus iFrame time" 0.1 s.
+@export var riposte_i_frame_tail: float = 0.1
+
+## Unity: GotParalyzed 1 s / GotSlowed 2 s / drained silk 2.
+@export var paralyzed_time: float = 1.0
+@export var slowed_time: float = 2.0
+@export var drained_silk: int = 2
+## Unity: FlashWhite() 0.25 s.
+@export var flash_white_time: float = 0.25
+## Re-check Hurtbox overlaps this many physics ticks after i-frames end (Godot-only addition).
+@export var contact_recheck_ticks: int = 2

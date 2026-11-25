@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/player/player_slash.gd" id="1_3410f"]
+
+[node name="PlayerSlash" type="Area2D" unique_id=926955777]
+script = ExtResource("1_3410f")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=381049975]
+scale = Vector2(0.25, 0.25)
+
+[node name="BoxShape" type="CollisionShape2D" parent="." unique_id=846496467]
+
+[node name="PolygonShape" type="CollisionPolygon2D" parent="." unique_id=1287651187]

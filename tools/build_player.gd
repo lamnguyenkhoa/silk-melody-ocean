@@ -9,7 +9,8 @@ const SPRITE_PATH := "Visual/Sprite2D"
 ## Unity: m_StopTime of the 1-frame clips (one 60 Hz sample).
 const ONE_FRAME_LENGTH := 0.016666668
 
-## name -> [sheet, hframes, [frame indices], [times], length]
+## name -> [sheet, hframes, [frame indices], [times], length, loop (optional, default true),
+## events (optional): {time: method name} called on the Player (Unity animation events)]
 const CLIPS := {
 	"idle": ["tenroh_idle.png", 3, [0, 1, 2, 0], [0.0, 0.16666667, 0.33333334, 0.5], 0.51666665],
 	"run": ["tenroh_run.png", 2, [0, 1, 0], [0.0, 0.16666667, 0.33333334], 0.35000002],
@@ -17,7 +18,20 @@ const CLIPS := {
 	"fall": ["tenroh_fall.png", 1, [0], [0.0], ONE_FRAME_LENGTH],
 	"dash": ["tenroh_dash.png", 1, [0], [0.0], ONE_FRAME_LENGTH],
 	"ledge_grab": ["tenroh_grabLedge.png", 1, [0], [0.0], ONE_FRAME_LENGTH],
-	"hurt": ["tenroh_hurt.png", 1, [0], [0.0], ONE_FRAME_LENGTH],
+	"hurt": ["tenroh_hurt.png", 1, [0], [0.0], ONE_FRAME_LENGTH, true, {0.0: "end_attack_anim"}],
+	# P3: Attack.anim / AttackUp.anim (m_StopTime 0.21666667, no loop, events BeginAttackAnim @0 /
+	# EndAttackAnim @0.2). Frame keys read from m_PPtrCurves.
+	"attack": ["tenroh_attack.png", 3, [0, 1, 2, 2], [0.0, 0.033333335, 0.06666667, 0.2], 0.21666667,
+			false, {0.0: "begin_attack_anim", 0.2: "end_attack_anim"}],
+	"attack_up": ["tenroh_attackUp.png", 3, [0, 1, 2, 2], [0.0, 0.06666667, 0.13333334, 0.2], 0.21666667,
+			false, {0.0: "begin_attack_anim", 0.2: "end_attack_anim"}],
+	# DashAttack / PogoAttack: single looping frame (selected by the dashAttack / pogoAttack bools).
+	"dash_attack": ["tenroh_dashAttack.png", 1, [0], [0.0], ONE_FRAME_LENGTH],
+	"pogo_attack": ["tenroh_pogoAttack.png", 1, [0], [0.0], ONE_FRAME_LENGTH],
+	# Parry states 1/2/3 = frames 0/1/2 of tenroh_parry.png (tenroh_parry_0/1/2 internalIDs).
+	"parry": ["tenroh_parry.png", 3, [0], [0.0], ONE_FRAME_LENGTH],
+	"parry_received": ["tenroh_parry.png", 3, [1], [0.0], ONE_FRAME_LENGTH],
+	"parry_riposte": ["tenroh_parry.png", 3, [2], [0.0], ONE_FRAME_LENGTH],
 }
 
 
@@ -70,6 +84,20 @@ func _initialize() -> void:
 		_add(player, visual, m)
 
 	_add(player, visual, _make_dust())
+
+	# P3: Hurtbox (contact damage, mask Enemy + EnemyAttack) and PlayerTrigger (layer 8).
+	# Collision layers/masks are set in player.gd _ready(); shapes are resized from PlayerStats there.
+	for area_name: String in ["Hurtbox", "PlayerTrigger"]:
+		var area := Area2D.new()
+		area.name = area_name
+		_add(player, player, area)
+		var area_shape := CollisionShape2D.new()
+		area_shape.name = "Shape"
+		var area_rect := RectangleShape2D.new()
+		area_rect.size = Vector2(12.8, 23.0)
+		area_shape.shape = area_rect
+		area_shape.position = Vector2(0, 2.7)
+		_add(player, area, area_shape)
 
 	var ap := AnimationPlayer.new()
 	ap.name = "AnimationPlayer"
@@ -133,7 +161,8 @@ func _make_clip(d: Array) -> Animation:
 	var frames: Array = d[2]
 	var times: Array = d[3]
 	a.length = d[4] as float
-	a.loop_mode = Animation.LOOP_LINEAR
+	var loops: bool = d[5] as bool if d.size() > 5 else true
+	a.loop_mode = Animation.LOOP_LINEAR if loops else Animation.LOOP_NONE
 
 	var t_tex := a.add_track(Animation.TYPE_VALUE)
 	a.track_set_path(t_tex, NodePath(SPRITE_PATH + ":texture"))
@@ -151,4 +180,10 @@ func _make_clip(d: Array) -> Animation:
 	a.track_set_interpolation_type(t_f, Animation.INTERPOLATION_NEAREST)
 	for i in frames.size():
 		a.track_insert_key(t_f, times[i] as float, frames[i] as int)
+	if d.size() > 6:
+		var events: Dictionary = d[6]
+		var t_m := a.add_track(Animation.TYPE_METHOD)
+		a.track_set_path(t_m, NodePath("."))
+		for time: float in events:
+			a.track_insert_key(t_m, time, {"method": StringName(events[time] as String), "args": []})
 	return a

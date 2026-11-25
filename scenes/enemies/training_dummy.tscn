@@ -1,0 +1,57 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/enemy.gd" id="1_du35q"]
+[ext_resource type="Texture2D" path="res://assets/enemies/Crawling.png" id="2_oypjc"]
+[ext_resource type="AudioStream" path="res://assets/sfx/hit_enemy.ogg" id="3_mn3ee"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jyexh"]
+size = Vector2(18.1, 10.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_07ohk"]
+size = Vector2(18.1, 10.5)
+
+[sub_resource type="Curve" id="Curve_hgpl1"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[node name="TrainingDummy" type="CharacterBody2D" unique_id=1027007846]
+script = ExtResource("1_du35q")
+max_hp = 999
+enemy_type = 99
+drag = 1.0
+
+[node name="Body" type="CollisionShape2D" parent="." unique_id=503124743]
+position = Vector2(0, 9.5)
+shape = SubResource("RectangleShape2D_jyexh")
+
+[node name="Visual" type="Node2D" parent="." unique_id=2017926715]
+
+[node name="Sprite2D" type="Sprite2D" parent="Visual" unique_id=286704819]
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("2_oypjc")
+hframes = 4
+
+[node name="ContactArea" type="Area2D" parent="." unique_id=1659457094]
+
+[node name="Shape" type="CollisionShape2D" parent="ContactArea" unique_id=1544246390]
+position = Vector2(0, 9.5)
+shape = SubResource("RectangleShape2D_07ohk")
+
+[node name="LootPos" type="Marker2D" parent="." unique_id=641068443]
+
+[node name="HitParticles" type="CPUParticles2D" parent="." unique_id=1819947973]
+emitting = false
+amount = 6
+lifetime = 0.35
+one_shot = true
+explosiveness = 1.0
+spread = 30.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 60.0
+initial_velocity_max = 140.0
+scale_amount_min = 1.5
+scale_amount_max = 2.5
+scale_amount_curve = SubResource("Curve_hgpl1")
+
+[node name="HitSfx" type="AudioStreamPlayer" parent="." unique_id=845436777]
+stream = ExtResource("3_mn3ee")
