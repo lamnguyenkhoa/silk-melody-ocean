@@ -163,10 +163,15 @@ func _test_menu_no_save() -> void:
 	_eq("menu/version label", menu.version_label.text, "v0.1.1")
 	_check("menu: select frame on the focused button only", menu.new_game_button.is_frame_visible() and not menu.continue_button.is_frame_visible() and not menu.quit_button.is_frame_visible())
 	_check("menu: initial focus is silent", not menu.new_game_button.get_node("SelectSound").playing)
+	# The select sound is ~34 ms, shorter than two frames, so sample it the moment focus arrives
+	# (this handler is connected after the button's own, so play() has already been called).
+	var sfx_on_focus := [false]
+	var cont_sfx := menu.continue_button.get_node("SelectSound") as AudioStreamPlayer
+	menu.continue_button.focus_entered.connect(func() -> void: sfx_on_focus[0] = cont_sfx.playing, CONNECT_ONE_SHOT)
 	await _press(&"ui_down")
 	_eq("menu: ui_down -> Continue (focusable like Unity)", _focus_of(menu), "Continue")
 	_check("menu: frame follows focus", menu.continue_button.is_frame_visible() and not menu.new_game_button.is_frame_visible())
-	_check("menu: select sound on focus", menu.continue_button.get_node("SelectSound").playing)
+	_check("menu: select sound on focus", sfx_on_focus[0])
 	await _press(&"ui_accept")
 	await _frames(10)
 	_check("menu/no save: Continue does nothing", current_scene == menu and is_instance_valid(menu) and not _has_world())
