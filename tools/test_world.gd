@@ -11,6 +11,9 @@ const FPS := 60.0
 ## Unity: LevelLoader.transitionTime.
 const UNITY_TRANSITION_TIME := 1.0
 const TILE := 16
+## RoomLoader.StartMode (autoload identifiers are not available to -s scripts).
+const NEW_GAME := 0
+const CONTINUE := 1
 
 var gs
 var rl
@@ -90,13 +93,14 @@ func _add(name: String, measured: String, expected: String, ok: bool, note: Stri
 	if not ok:
 		fails += 1
 
-## Fresh world (no debug dummies). Boots through RoomLoader.start() exactly like the main scene.
-func _boot_world() -> void:
+## Fresh world (no debug dummies). Boots through RoomLoader.start(mode) exactly like the main scene (the menu's New Game / Continue).
+func _boot_world(mode: int = NEW_GAME) -> void:
 	if world != null and is_instance_valid(world):
 		world.free()
 		await process_frame
 	world = (load(WORLD_PATH) as PackedScene).instantiate()
 	world.spawn_debug_dummies = false
+	world.set("start_mode", mode)
 	root.add_child(world)
 	player = world.get_node("Player")
 	await _frames(3)
@@ -399,7 +403,7 @@ func _test_boot_with_save() -> void:
 	gs.save()
 	gs.reset_to_new_game()
 	_add("boot-with-save setup: memory wiped", "hp=%d copper=%d scene=%s" % [gs.current_hp, gs.copper_shard, gs.respawn_scene], "defaults", gs.current_hp == 5 and gs.copper_shard == 0 and gs.respawn_scene == "DirtCave0")
-	await _boot_world()
+	await _boot_world(CONTINUE)
 	var room = rl.current_room
 	var chair = room.get_node("RestChair")
 	var sit: Node2D = chair.get_node("SitSpot")

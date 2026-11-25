@@ -50,7 +50,7 @@ func _ready() -> void:
 	if pickup_sfx != null and pickup_sfx.stream == null:
 		pickup_sfx.stream = load(PICKUP_SFX_PATH) as AudioStream
 	if destroy_time > 0.0:
-		get_tree().create_timer(destroy_time).timeout.connect(_on_destroy_timeout)
+		get_tree().create_timer(destroy_time, false).timeout.connect(_on_destroy_timeout)
 
 func _on_destroy_timeout() -> void:
 	if is_inside_tree():
@@ -84,4 +84,4 @@ func _on_pickup_area_entered(area: Area2D) -> void:
 	pickup_area.set_deferred("monitoring", false)
 	if pickup_sfx != null:
 		pickup_sfx.play()
-	get_tree().create_timer(picked_free_delay).timeout.connect(_on_destroy_timeout)
+	get_tree().create_timer(picked_free_delay, false).timeout.connect(_on_destroy_timeout)

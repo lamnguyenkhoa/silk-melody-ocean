@@ -1,7 +1,7 @@
 class_name World
 extends Node2D
 ## Persistent world root (plan 7.1). Owns Player, camera, HUD, fader; RoomLoader swaps the rooms
-## under RoomContainer and loads / places everything on boot (RoomLoader.start()).
+## under RoomContainer and loads / places everything on boot (RoomLoader.start(start_mode)).
 
 ## Debug camera-shake test (F9): Unity damage shake uses intensity 5 for 0.3 s.
 const DEBUG_SHAKE_INTENSITY: float = 5.0
@@ -27,19 +27,25 @@ const DEBUG_DUMMY_ROOM: String = "DirtCave0"
 @onready var camera: GameCamera = $GameCamera
 
 @onready var fader: Fader = $Fader
+@onready var pause_menu: PauseMenu = $PauseMenu
 
 ## Set by RoomLoader on every room swap.
 var current_room: Node
+## How RoomLoader.start() boots this world. The main menu sets it (New Game / Continue) before the world
+## enters the tree; a world opened directly (editor F6, tests) continues from the save if there is one.
+var start_mode: RoomLoader.StartMode = RoomLoader.StartMode.CONTINUE
 ## Tests set this to false before adding the world to the tree.
 var spawn_debug_dummies: bool = true
 
 func _ready() -> void:
 	camera.target = player
+	pause_menu.player = player
 	RoomLoader.register_world(self, player, camera, fader, room_container)
 	RoomLoader.room_loaded.connect(_on_room_loaded)
-	RoomLoader.start()
+	RoomLoader.start(start_mode)
 
 func _exit_tree() -> void:
+	RoomLoader.unregister_world(self)
 	if RoomLoader.room_loaded.is_connected(_on_room_loaded):
 		RoomLoader.room_loaded.disconnect(_on_room_loaded)
 

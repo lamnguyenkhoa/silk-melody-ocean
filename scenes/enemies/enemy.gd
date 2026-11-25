@@ -227,7 +227,7 @@ func death() -> void:
 	is_dead = true
 	_spawn_loot.call_deferred()
 	Hitstop.slow(DEATH_SLOW_SCALE, DEATH_SLOW_TIME)
-	get_tree().create_timer(CORPSE_LIFETIME).timeout.connect(queue_free)
+	get_tree().create_timer(CORPSE_LIFETIME, false).timeout.connect(queue_free)
 
 ## Loot hook: needs loot_scene (P5). Each piece gets a random upward burst.
 func _spawn_loot() -> void:

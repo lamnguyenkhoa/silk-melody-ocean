@@ -358,7 +358,7 @@ func _do_dash(also_attack: bool, dir: Vector2) -> void:
 	velocity = Vector2.ZERO
 	velocity += dir * GameState.dash_force
 	# process_in_physics = true so the wait is counted in physics ticks (deterministic).
-	await get_tree().create_timer(GameState.dash_time, true, true).timeout
+	await get_tree().create_timer(GameState.dash_time, false, true).timeout
 	if my_gen != _dash_gen:
 		return
 	is_dashing = false
@@ -876,4 +876,4 @@ func _set_flash(value: float) -> void:
 
 ## WaitForSeconds equivalent: counted in physics ticks, scaled by Engine.time_scale.
 func _wait(seconds: float) -> Signal:
-	return get_tree().create_timer(seconds, true, true).timeout
+	return get_tree().create_timer(seconds, false, true).timeout

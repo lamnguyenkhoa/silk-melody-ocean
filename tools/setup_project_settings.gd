@@ -47,12 +47,12 @@ func _init() -> void:
 	_set_action("dash", [_key(KEY_Z), _axis(JOY_AXIS_TRIGGER_RIGHT, 1.0)])
 	_set_action("silk_skill", [_key(KEY_Q), _btn(JOY_BUTTON_B)])
 	_set_action("parry", [_key(KEY_F), _btn(JOY_BUTTON_Y)])
-	_set_action("pause", [_key(KEY_ESCAPE), _btn(JOY_BUTTON_BACK)])
+	_set_action("pause", [_key(KEY_ESCAPE), _btn(JOY_BUTTON_BACK), _btn(JOY_BUTTON_START)])
 
 	ProjectSettings.set_setting("autoload/GameState", "*res://autoload/game_state.gd")
 	ProjectSettings.set_setting("autoload/Hitstop", "*res://autoload/hitstop.gd")
 	ProjectSettings.set_setting("autoload/RoomLoader", "*res://autoload/room_loader.gd")
-	ProjectSettings.set_setting("application/run/main_scene", "res://scenes/world/world.tscn")
+	ProjectSettings.set_setting("application/run/main_scene", "res://scenes/ui/main_menu.tscn")
 
 	var err := ProjectSettings.save()
 	print("ProjectSettings.save() -> ", err)

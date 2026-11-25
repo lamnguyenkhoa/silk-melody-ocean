@@ -91,7 +91,7 @@ func _start_saving_text() -> void:
 	_text_gen += 1
 	var my_gen: int = _text_gen
 	saving_text.visible = true
-	await get_tree().create_timer(SAVING_TEXT_TIME, true, true).timeout
+	await get_tree().create_timer(SAVING_TEXT_TIME, false, true).timeout
 	if my_gen == _text_gen:
 		saving_text.visible = false
 

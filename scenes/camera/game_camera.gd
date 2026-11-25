@@ -25,11 +25,13 @@ var _shake_unscaled: bool = false
 var _shake_start: float = 0.0
 var _shake_active: bool = false
 var _scaled_clock: float = 0.0
+var _last_real_time: float = 0.0
 
 func _ready() -> void:
 	# Keep ticking during hit-stop (Engine.time_scale 0) so unscaled shakes play.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	process_callback = Camera2D.CAMERA2D_PROCESS_PHYSICS
+	_last_real_time = Time.get_ticks_msec() / 1000.0
 	zoom = Vector2.ONE * CAMERA_ZOOM
 	position_smoothing_enabled = true
 	position_smoothing_speed = FOLLOW_SMOOTHING_SPEED
@@ -47,6 +49,14 @@ func _physics_process(_delta: float) -> void:
 		global_position = target.global_position
 
 func _process(delta: float) -> void:
+	# This node is PROCESS_MODE_ALWAYS (hit-stop); the pause menu must still freeze it, including the
+	# real-time clock of unscaled shakes.
+	var now: float = Time.get_ticks_msec() / 1000.0
+	if get_tree().paused:
+		_shake_start += now - _last_real_time
+		_last_real_time = now
+		return
+	_last_real_time = now
 	_scaled_clock += delta
 	if not _shake_active:
 		return
