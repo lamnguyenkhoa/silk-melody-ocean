@@ -82,6 +82,20 @@ func reset_to_new_game() -> void:
 	world = WorldData.new()
 	stats_changed.emit()
 
+## Stat helpers: every gameplay change of hp / lifeblood / silk / shards goes through here (or emits
+## stats_changed itself) so the HUD (which listens to the signal, never polls) stays in sync.
+func add_silk(amount: int) -> void:
+	current_silk = clampi(current_silk + amount, 0, max_silk)
+	stats_changed.emit()
+
+func add_lifeblood(amount: int) -> void:
+	lifeblood_hp = maxi(lifeblood_hp + amount, 0)
+	stats_changed.emit()
+
+func add_copper_shard(amount: int) -> void:
+	copper_shard = maxi(copper_shard + amount, 0)
+	stats_changed.emit()
+
 func add_visited_room(room_name: String) -> void:
 	if not world.visited_rooms.has(room_name):
 		world.visited_rooms.append(room_name)

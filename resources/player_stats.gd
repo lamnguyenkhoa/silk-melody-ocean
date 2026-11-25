@@ -84,3 +84,17 @@ extends Resource
 @export var flash_white_time: float = 0.25
 ## Re-check Hurtbox overlaps this many physics ticks after i-frames end (Godot-only addition).
 @export var contact_recheck_ticks: int = 2
+
+# --- P4: silk skills (Player.cs HandleSilkSkill / BeginHeal ... CatchSilkBurstRecoil) ---
+
+## Unity: HandleSilkSkill hard-coded silk costs (paid at press).
+@export var gossamer_cost: int = 6
+@export var silk_burst_cost: int = 4
+@export var heal_cost: int = 8
+## Unity: BeginHeal / BeginGossamer localPosition (0.25, 0, 0) -> px (SilkBind VFX + Gossamer).
+@export var skill_vfx_pos: Vector2 = Vector2(4, 0)
+## Unity: ThrowSilkBurst localPosition (4, 0, 0) -> px.
+@export var silk_burst_pos: Vector2 = Vector2(64, 0)
+## Unity: CatchSilkBurstRecoil AddForce(-+(10, 2)) impulse -> px/s, written for a right-facing player
+## (x is mirrored by facing, y flipped).
+@export var silk_burst_recoil: Vector2 = Vector2(-160, -32)

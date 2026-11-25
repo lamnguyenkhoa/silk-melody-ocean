@@ -113,8 +113,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_F10:
 			player.damaged(DEBUG_DAMAGE_AMOUNT, DEBUG_DAMAGE_KNOCKBACK)
 		KEY_F11:
-			GameState.lifeblood_hp += 1
-			GameState.stats_changed.emit()
+			GameState.add_lifeblood(1)
 		KEY_F12:
-			GameState.current_silk = GameState.max_silk
-			GameState.stats_changed.emit()
+			GameState.add_silk(GameState.max_silk)

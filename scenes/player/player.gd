@@ -2,7 +2,7 @@ class_name Player
 extends CharacterBody2D
 ## Port of Player.cs (plan section 5). P2: movement, jump, coyote, ledge grab, dash, animation
 ## state, landing dust. P3: attack / pogo / slashes, parry + riposte, damage pipeline, i-frames,
-## stun, contact damage, status effects, death. Silk skills (P4) are NOT here yet.
+## stun, contact damage, status effects, death. P4: silk skills (heal, gossamer, silk burst).
 ##
 ## Flag/lock model like the original: independent bools + a control_lock counter.
 ## Unity space -> Godot space: 1 unit = 16 px, +y is down (see plan section 0).
@@ -51,6 +51,9 @@ const SLASH_SPARK_SCENE_PATH := "res://scenes/vfx/slash_spark.tscn"
 const HURT_SPARK_SCENE_PATH := "res://scenes/vfx/hurt_spark.tscn"
 const HURT_PE_SCENE_PATH := "res://scenes/vfx/hurt_pe.tscn"
 const FLASH_SHADER_PATH := "res://scenes/vfx/flash.gdshader"
+const SILK_BIND_SCENE_PATH := "res://scenes/vfx/silk_bind.tscn"
+const GOSSAMER_SCENE_PATH := "res://scenes/player/gossamer.tscn"
+const SILK_BURST_SCENE_PATH := "res://scenes/player/silk_burst.tscn"
 ## Visual.scale.x sign for facing.
 const FACE_RIGHT: float = 1.0
 const FACE_LEFT: float = -1.0
@@ -102,7 +105,7 @@ var state: State = State.IDLE
 var anim_override: StringName = &""
 ## Unity Animator int parryState: 0 none, 1 Parry, 2 ParryReceived, 3 ParryRipose.
 var parry_state: int = 0
-## Silk skill instances (P4); freed when the player is hit.
+## Active Gossamer / SilkBurst instances (P4); freed when the player is hit.
 var gossamer_instance: Node = null
 var silk_burst_instance: Node = null
 
@@ -216,7 +219,7 @@ func _physics_process(delta: float) -> void:
 		if can_ledge_grab:
 			_handle_ledge_grab()
 		_handle_coyote_time(delta)
-		# P4: _handle_silk_skill()
+		_handle_silk_skill()
 
 	_animation_control()
 	_landing_dust(delta)
@@ -368,6 +371,73 @@ func _do_dash(also_attack: bool, dir: Vector2) -> void:
 ## StopCoroutine(dashCoroutine): the pending wait of the running dash becomes a no-op.
 func cancel_dash() -> void:
 	_dash_gen += 1
+
+# --- 5.13 Silk skills ---
+
+## HandleSilkSkill(): the cost is paid at press; the clip's method-call tracks do the rest.
+## Unity if/else-if chain kept: holding Up/Down without enough silk for that skill falls through
+## to the next branch (in practice only Heal can then trigger, which needs 8 silk).
+func _handle_silk_skill() -> void:
+	if not _was_pressed(&"silk_skill") or in_attack:
+		return
+	if ver_input >= stats.ver_input_threshold and GameState.current_silk >= stats.gossamer_cost:
+		GameState.add_silk(-stats.gossamer_cost)
+		_play_one_shot(&"gossamer")
+	elif ver_input <= -stats.ver_input_threshold and GameState.current_silk >= stats.silk_burst_cost:
+		GameState.add_silk(-stats.silk_burst_cost)
+		_play_one_shot(&"silk_burst")
+	elif GameState.current_silk >= stats.heal_cost and GameState.current_hp < GameState.max_hp:
+		GameState.add_silk(-stats.heal_cost)
+		_play_one_shot(&"heal")
+
+## Shared by BeginHeal / BeginGossamer / BeginSilkBurst: lock input, freeze in place.
+func _begin_silk_skill_lock() -> void:
+	in_silk_skill = true
+	velocity = Vector2.ZERO
+	gravity_on = false
+
+## Animation event (heal clip @0.0).
+func begin_heal() -> void:
+	sfx.play_sound(PlayerSfx.Sound.SILKBIND)
+	_begin_silk_skill_lock()
+	# Unity: child of the (flipped) player transform; here Visual carries the flip.
+	var vfx := (load(SILK_BIND_SCENE_PATH) as PackedScene).instantiate() as Node2D
+	vfx.position = stats.skill_vfx_pos
+	visual.add_child(vfx)
+
+## Animation event (heal clip @0.5833).
+func actual_heal() -> void:
+	heal(GameState.silk_heal)
+
+## Animation event (heal @1.0, gossamer @1.0 "EndGossamer", silk_burst @0.9667 "EndSilkBurst").
+func end_heal() -> void:
+	in_silk_skill = false
+	gravity_on = true
+
+## Animation event (gossamer clip @0.0).
+func begin_gossamer() -> void:
+	_begin_silk_skill_lock()
+	var instance := (load(GOSSAMER_SCENE_PATH) as PackedScene).instantiate() as Gossamer
+	instance.position = stats.skill_vfx_pos # set before add_child: the circle centre is read in _ready
+	instance.player_pos = global_position
+	visual.add_child(instance)
+	gossamer_instance = instance
+
+## Animation event (silk_burst clip @0.0).
+func begin_silk_burst() -> void:
+	_begin_silk_skill_lock()
+
+## Animation event (silk_burst clip @0.1667).
+func throw_silk_burst() -> void:
+	var instance := (load(SILK_BURST_SCENE_PATH) as PackedScene).instantiate() as SilkBurst
+	instance.position = stats.silk_burst_pos
+	instance.player_pos = global_position
+	visual.add_child(instance)
+	silk_burst_instance = instance
+
+## Animation event (silk_burst clip @0.8333): pushes the player back, away from the facing side.
+func catch_silk_burst_recoil() -> void:
+	velocity += Vector2(stats.silk_burst_recoil.x * facing(), stats.silk_burst_recoil.y)
 
 # --- 5.14 Animation state ---
 
@@ -728,8 +798,7 @@ func inflicted_status_effect(status: StatusEffect) -> void:
 		StatusEffect.SLOWED:
 			_got_slowed()
 		StatusEffect.DRAINED:
-			GameState.current_silk = clampi(GameState.current_silk - stats.drained_silk, 0, GameState.max_silk)
-			GameState.stats_changed.emit()
+			GameState.add_silk(-stats.drained_silk)
 
 func _got_paralyzed() -> void:
 	_paralyze_gen += 1

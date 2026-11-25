@@ -32,6 +32,19 @@ const CLIPS := {
 	"parry": ["tenroh_parry.png", 3, [0], [0.0], ONE_FRAME_LENGTH],
 	"parry_received": ["tenroh_parry.png", 3, [1], [0.0], ONE_FRAME_LENGTH],
 	"parry_riposte": ["tenroh_parry.png", 3, [2], [0.0], ONE_FRAME_LENGTH],
+	# P4: Heal.anim / GossamerCast.anim / SilkBurstCast.anim (frames from m_PPtrCurves, events from
+	# m_Events). Unity: the Heal / Gossamer states have LoopTime 1 but leave to Idle through an exit
+	# transition (exit time 0.754 + 0.25 s blend = clip length), so the cast plays exactly once.
+	# GossamerCast "EndGossamer" and SilkBurstCast "EndSilkBurst" both call EndHeal.
+	"heal": ["tenroh_heal.png", 2, [0, 1, 1], [0.0, 0.25, 1.0], 1.0166667,
+			false, {0.0: "begin_heal", 0.5833333: "actual_heal", 1.0: "end_heal"}],
+	"gossamer": ["tenroh_gossamer.png", 2, [0, 1, 0, 1, 0, 1, 1],
+			[0.0, 0.16666667, 0.33333334, 0.5, 0.6666667, 0.8333333, 1.0], 1.0166667,
+			false, {0.0: "begin_gossamer", 1.0: "end_heal"}],
+	"silk_burst": ["tenroh_burst.png", 6, [0, 1, 2, 3, 4, 5, 5],
+			[0.0, 0.06666667, 0.16666667, 0.25, 0.75, 0.8333333, 0.96666664], 0.9833333,
+			false, {0.0: "begin_silk_burst", 0.16666667: "throw_silk_burst",
+			0.8333333: "catch_silk_burst_recoil", 0.96666664: "end_heal"}],
 }
 
 

@@ -199,8 +199,7 @@ func _hit_enemy(enemy: Enemy) -> void:
 	var knockback: Vector2 = _knockback_toward(enemy)
 	enemy.damaged(GameState.damage, knockback)
 	_spawn_hit_effects(enemy.global_position, knockback)
-	GameState.current_silk = clampi(GameState.current_silk + 1, 0, GameState.max_silk)
-	GameState.stats_changed.emit()
+	GameState.add_silk(1)
 
 func _spawn_hit_effects(pos: Vector2, knockback: Vector2) -> void:
 	var host: Node = player.get_parent()

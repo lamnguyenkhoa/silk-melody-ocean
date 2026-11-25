@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/hud.gd" id="1_0mwgc"]
+
+[node name="HUD" type="CanvasLayer" unique_id=10734936]
+script = ExtResource("1_0mwgc")
+
+[node name="Masks" type="HBoxContainer" parent="." unique_id=1676142739]
+
+[node name="SilkBar" type="HBoxContainer" parent="." unique_id=814136656]
+
+[node name="LeftCap" type="TextureRect" parent="SilkBar" unique_id=407588412]
+layout_mode = 2
+
+[node name="Segments" type="HBoxContainer" parent="SilkBar" unique_id=1173589347]
+layout_mode = 2
+
+[node name="RightCap" type="TextureRect" parent="SilkBar" unique_id=1834431005]
+layout_mode = 2
+
+[node name="Shards" type="Control" parent="." unique_id=1957262775]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="Icon" type="TextureRect" parent="Shards" unique_id=37316286]
+layout_mode = 0
+
+[node name="Count" type="Label" parent="Shards" unique_id=707179312]
+layout_mode = 0
