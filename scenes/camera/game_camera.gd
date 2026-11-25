@@ -10,8 +10,9 @@ const TILE_SIZE: int = 16
 const CAMERA_ZOOM: float = 216.0 / 192.0
 ## Unity: CinemachineFramingTransposer X/Y damping 1 -> approx. Godot smoothing speed (plan 7.4).
 const FOLLOW_SMOOTHING_SPEED: float = 5.0
-## Unity: m_DeadZoneWidth/Height 0.2 (central 20 % of the screen). Godot drag margins are measured
-## from each screen EDGE, so a 0.2 dead zone is a margin of (1 - 0.2) / 2 = 0.4 per side.
+## Unity: m_DeadZoneWidth/Height 0.2 (central 20 % of the screen, i.e. +-10 % from centre).
+## Godot drag margins are measured from the screen CENTRE as a fraction of half the screen
+## (0 = always follow, 1 = only at the edge), so +-10 % of the screen = margin 0.2.
 const DEAD_ZONE: float = 0.2
 ## Shake amplitude in px per unit of "intensity" (plan 7.4: intensity 5 ~ 6 px).
 const SHAKE_PX_PER_INTENSITY: float = 1.2
@@ -32,7 +33,7 @@ func _ready() -> void:
 	zoom = Vector2.ONE * CAMERA_ZOOM
 	position_smoothing_enabled = true
 	position_smoothing_speed = FOLLOW_SMOOTHING_SPEED
-	var margin: float = (1.0 - DEAD_ZONE) / 2.0
+	var margin: float = DEAD_ZONE
 	drag_horizontal_enabled = true
 	drag_vertical_enabled = true
 	drag_left_margin = margin
