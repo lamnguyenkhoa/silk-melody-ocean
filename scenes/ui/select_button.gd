@@ -21,6 +21,12 @@ const FONT_SIZE: int = 10
 		inert = value
 		_apply_dimming()
 
+## Font size override (px); 0 keeps FONT_SIZE. Set before the button enters the tree.
+@export var font_size_px: int = 0
+## The select frame is the button rect grown by this much on every side (game menu journal rows: the
+## 500x150 frame around a 450x100 button).
+@export var frame_outset: Vector2 = Vector2.ZERO
+
 ## Skip the select sound for the next focus gain (the initial focus of a menu should be silent).
 var mute_next_focus: bool = false
 
@@ -33,7 +39,7 @@ func _ready() -> void:
 	flat = true
 	alignment = HORIZONTAL_ALIGNMENT_CENTER
 	focus_mode = Control.FOCUS_ALL
-	add_theme_font_size_override("font_size", FONT_SIZE)
+	add_theme_font_size_override("font_size", font_size_px if font_size_px > 0 else FONT_SIZE)
 	for style_name: String in ["normal", "hover", "pressed", "focus", "disabled", "hover_pressed"]:
 		add_theme_stylebox_override(style_name, StyleBoxEmpty.new())
 
@@ -41,6 +47,10 @@ func _ready() -> void:
 	_frame.name = "SelectFrame"
 	_frame.texture = FRAME_TEXTURE
 	_frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_frame.offset_left = -frame_outset.x
+	_frame.offset_right = frame_outset.x
+	_frame.offset_top = -frame_outset.y
+	_frame.offset_bottom = frame_outset.y
 	_frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_frame.stretch_mode = TextureRect.STRETCH_SCALE
 	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE

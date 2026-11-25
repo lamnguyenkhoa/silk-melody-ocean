@@ -47,6 +47,22 @@ var respawn_pos: Vector2 = Vector2.ZERO
 var copper_shard: int = 0
 var scale_shard: int = 0
 
+# --- PlayerData inventory / talisman / tools (M1 data, behaviour for the tools comes in M2) ---
+## Amount per ItemName (inventoryItemAmount).
+var inventory_item_amount: Array[int] = []
+## TalismanName values.
+var found_talismans: Array[int] = []
+var equipped_talisman: int = InventoryIds.TalismanName.WANDERER
+## Current charge per RedToolName (redToolsCurrentCharge).
+var red_tools_current_charge: Array[float] = []
+var found_red_tools: Array[int] = []
+var equipped_red_tools: Array[int] = []
+var selected_red_tool_id: int = 0
+var found_blue_tools: Array[int] = []
+var equipped_blue_tools: Array[int] = []
+var found_yellow_tools: Array[int] = []
+var equipped_yellow_tools: Array[int] = []
+
 var world: WorldData = WorldData.new()
 
 func _ready() -> void:
@@ -79,8 +95,60 @@ func reset_to_new_game() -> void:
 	respawn_pos = Vector2.ZERO
 	copper_shard = 0
 	scale_shard = 0
+	_reset_inventory()
 	world = WorldData.new()
 	stats_changed.emit()
+
+## InitNewGameData part: talismans [wanderer], full red-tool charges, starting items, no tools found.
+func _reset_inventory() -> void:
+	inventory_item_amount = _new_game_items()
+	found_talismans = [InventoryIds.TalismanName.WANDERER]
+	equipped_talisman = InventoryIds.TalismanName.WANDERER
+	red_tools_current_charge = _full_red_tool_charges()
+	found_red_tools = []
+	equipped_red_tools = []
+	selected_red_tool_id = 0
+	found_blue_tools = []
+	equipped_blue_tools = []
+	found_yellow_tools = []
+	equipped_yellow_tools = []
+
+func _new_game_items() -> Array[int]:
+	var items: Array[int] = []
+	items.resize(InventoryIds.ItemName.size())
+	items.fill(0)
+	for item: int in InventoryIds.NEW_GAME_ITEMS:
+		items[item] = 1
+	return items
+
+func _full_red_tool_charges() -> Array[float]:
+	var charges: Array[float] = []
+	charges.assign(InventoryIds.RED_TOOL_MAX_CHARGE)
+	return charges
+
+func get_item_amount(item: int) -> int:
+	if item < 0 or item >= inventory_item_amount.size():
+		return 0
+	return inventory_item_amount[item]
+
+func get_kill_count(enemy_type: int) -> int:
+	return int(world.enemy_kill_count.get(enemy_type, 0))
+
+## Unity's editor-only `debugInventory` flag (GameMaster.InitNewGameData): every talisman and every tool
+## is found. Called from the debug-build key in world.gd.
+func grant_debug_inventory() -> void:
+	for t: int in InventoryIds.TalismanName.values():
+		if not found_talismans.has(t):
+			found_talismans.append(t)
+	for t: int in InventoryIds.RedToolName.values():
+		if not found_red_tools.has(t):
+			found_red_tools.append(t)
+	for t: int in InventoryIds.BlueToolName.values():
+		if not found_blue_tools.has(t):
+			found_blue_tools.append(t)
+	for t: int in InventoryIds.YellowToolName.values():
+		if not found_yellow_tools.has(t):
+			found_yellow_tools.append(t)
 
 ## Stat helpers: every gameplay change of hp / lifeblood / silk / shards goes through here (or emits
 ## stats_changed itself) so the HUD (which listens to the signal, never polls) stays in sync.
@@ -156,6 +224,17 @@ func _player_to_dict() -> Dictionary:
 		"respawn_pos": [respawn_pos.x, respawn_pos.y],
 		"copper_shard": copper_shard,
 		"scale_shard": scale_shard,
+		"inventory_item_amount": inventory_item_amount.duplicate(),
+		"found_talismans": found_talismans.duplicate(),
+		"equipped_talisman": equipped_talisman,
+		"red_tools_current_charge": red_tools_current_charge.duplicate(),
+		"found_red_tools": found_red_tools.duplicate(),
+		"equipped_red_tools": equipped_red_tools.duplicate(),
+		"selected_red_tool_id": selected_red_tool_id,
+		"found_blue_tools": found_blue_tools.duplicate(),
+		"equipped_blue_tools": equipped_blue_tools.duplicate(),
+		"found_yellow_tools": found_yellow_tools.duplicate(),
+		"equipped_yellow_tools": equipped_yellow_tools.duplicate(),
 	}
 
 func _world_to_dict() -> Dictionary:
@@ -196,6 +275,52 @@ func _apply_player_dict(d: Dictionary) -> void:
 			respawn_pos = Vector2(float(a[0]), float(a[1]))
 	if d.has("copper_shard"): copper_shard = int(d["copper_shard"])
 	if d.has("scale_shard"): scale_shard = int(d["scale_shard"])
+	_apply_inventory_dict(d)
+
+## Old saves (before M1) lack these keys: every missing key falls back to the new-game value
+## (not to whatever is in memory), so loading an old save never leaves stale inventory data behind.
+func _apply_inventory_dict(d: Dictionary) -> void:
+	_reset_inventory()
+	if d.has("inventory_item_amount"):
+		var amounts: Array[int] = _new_game_items()
+		amounts.fill(0) # a saved array is the whole truth; unsaved trailing items count as 0
+		var src: Array = _as_array(d["inventory_item_amount"])
+		for i in mini(src.size(), amounts.size()):
+			amounts[i] = int(src[i])
+		inventory_item_amount = amounts
+	if d.has("found_talismans"):
+		found_talismans = _int_list(d["found_talismans"])
+	if d.has("equipped_talisman"):
+		equipped_talisman = int(d["equipped_talisman"])
+	if d.has("red_tools_current_charge"):
+		var charges: Array[float] = _full_red_tool_charges()
+		var csrc: Array = _as_array(d["red_tools_current_charge"])
+		for i in mini(csrc.size(), charges.size()):
+			charges[i] = float(csrc[i])
+		red_tools_current_charge = charges
+	if d.has("found_red_tools"):
+		found_red_tools = _int_list(d["found_red_tools"])
+	if d.has("equipped_red_tools"):
+		equipped_red_tools = _int_list(d["equipped_red_tools"])
+	if d.has("selected_red_tool_id"):
+		selected_red_tool_id = int(d["selected_red_tool_id"])
+	if d.has("found_blue_tools"):
+		found_blue_tools = _int_list(d["found_blue_tools"])
+	if d.has("equipped_blue_tools"):
+		equipped_blue_tools = _int_list(d["equipped_blue_tools"])
+	if d.has("found_yellow_tools"):
+		found_yellow_tools = _int_list(d["found_yellow_tools"])
+	if d.has("equipped_yellow_tools"):
+		equipped_yellow_tools = _int_list(d["equipped_yellow_tools"])
+
+static func _as_array(v: Variant) -> Array:
+	return v if v is Array else []
+
+static func _int_list(v: Variant) -> Array[int]:
+	var out: Array[int] = []
+	for e: Variant in _as_array(v):
+		out.append(int(e))
+	return out
 
 func _apply_world_dict(d: Dictionary) -> void:
 	if d.has("visited_rooms"):

@@ -11,6 +11,8 @@ signal paused_changed(is_paused: bool)
 
 ## The player whose control lock is held while the menu is open (set by World).
 var player: Player
+## The game menu (inventory / map / journal); pausing is refused while it is open (set by World).
+var game_menu: GameMenu
 
 @onready var resume_button: SelectButton = $Holder/Buttons/Resume
 @onready var main_menu_button: SelectButton = $Holder/Buttons/MainMenu
@@ -41,8 +43,11 @@ func is_open() -> bool:
 
 ## Pausing is blocked while dead (the respawn transition is running) and during room transitions /
 ## boot (fade out, swap): pausing there would freeze the transition timers' consumers mid-swap.
+## It is also blocked while the game menu is open (Escape closes that menu instead).
 func can_pause() -> bool:
 	if _leaving or player == null or not is_instance_valid(player):
+		return false
+	if game_menu != null and is_instance_valid(game_menu) and game_menu.blocks_pause():
 		return false
 	return not player.is_dead and not RoomLoader.is_transitioning()
 

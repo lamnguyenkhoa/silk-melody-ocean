@@ -34,6 +34,8 @@ const PARRY_CLIPS: Dictionary = {
 const GROUND_MASK: int = 1
 ## Actions whose "just pressed / just released" edge is buffered from _input (plan 5.1).
 const EDGE_ACTIONS: Array[StringName] = [&"jump", &"attack", &"dash", &"parry", &"silk_skill"]
+## Physics ticks swallow_input_edges() blocks.
+const EDGE_BLOCK_TICKS: int = 2
 ## Unity: AnimationControl velocity threshold 0.1 u/s -> px/s.
 const ANIM_VELOCITY_EPSILON: float = 0.1 * 16.0
 ## Unity: LandingDust airTime threshold (seconds) before dust + landing sound.
@@ -95,6 +97,7 @@ var is_dead: bool = false
 var in_silk_skill: bool = false
 var is_parrying: bool = false
 var resting: bool = false
+## Game menu open (Unity Player.inMenu): blocks the gameplay input gate, physics keeps running.
 var in_menu: bool = false
 ## Animator bools of the original (dashAttack / pogoAttack), cleared when a dash ends.
 var anim_dash_attack: bool = false
@@ -121,6 +124,8 @@ var _slow_gen: int = 0
 var _contact_recheck: int = 0
 var _flash_material: ShaderMaterial
 var _slash_scene: PackedScene
+## Press / release edges are ignored while Engine.get_physics_frames() <= this (see swallow_input_edges).
+var _edge_block_until: int = -1
 var _just_pressed: Dictionary = {}
 var _just_released: Dictionary = {}
 var _ground_query := PhysicsShapeQueryParameters2D.new()
@@ -195,10 +200,21 @@ func _input(event: InputEvent) -> void:
 			_just_released[action] = true
 
 func _was_pressed(action: StringName) -> bool:
+	if Engine.get_physics_frames() <= _edge_block_until:
+		return false
 	return _just_pressed.has(action) or Input.is_action_just_pressed(action)
 
 func _was_released(action: StringName) -> bool:
+	if Engine.get_physics_frames() <= _edge_block_until:
+		return false
 	return _just_released.has(action) or Input.is_action_just_released(action)
+
+## Ignores button press / release edges for the next physics ticks. The game menu calls this when it
+## closes: the key that closed it (Q, B, ...) shares its binding with a gameplay action.
+func swallow_input_edges() -> void:
+	_edge_block_until = Engine.get_physics_frames() + EDGE_BLOCK_TICKS
+	_just_pressed.clear()
+	_just_released.clear()
 
 # --- Per-frame order (plan 5.1) ---
 

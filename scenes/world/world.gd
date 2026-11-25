@@ -28,6 +28,7 @@ const DEBUG_DUMMY_ROOM: String = "DirtCave0"
 
 @onready var fader: Fader = $Fader
 @onready var pause_menu: PauseMenu = $PauseMenu
+@onready var game_menu: GameMenu = $GameMenu
 
 ## Set by RoomLoader on every room swap.
 var current_room: Node
@@ -40,6 +41,9 @@ var spawn_debug_dummies: bool = true
 func _ready() -> void:
 	camera.target = player
 	pause_menu.player = player
+	pause_menu.game_menu = game_menu
+	game_menu.player = player
+	game_menu.pause_menu = pause_menu
 	RoomLoader.register_world(self, player, camera, fader, room_container)
 	RoomLoader.room_loaded.connect(_on_room_loaded)
 	RoomLoader.start(start_mode)
@@ -106,6 +110,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			camera.shake(DEBUG_SHAKE_INTENSITY, DEBUG_SHAKE_TIME, true)
 		KEY_F10:
 			player.damaged(DEBUG_DAMAGE_AMOUNT, DEBUG_DAMAGE_KNOCKBACK)
+		KEY_F8:
+			# Unity's editor `debugInventory`: every talisman and tool found (the tools UI is phase M2).
+			GameState.grant_debug_inventory()
 		KEY_F11:
 			GameState.add_lifeblood(1)
 		KEY_F12:
