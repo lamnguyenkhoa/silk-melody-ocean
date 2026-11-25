@@ -36,3 +36,8 @@ extends Resource
 
 ## Unity: Player.footstepFrequency, seconds.
 @export var footstep_frequency: float = 0.5
+
+## Unity: DustPE local position (0.109, -0.838) -> px (y flipped).
+@export var dust_offset: Vector2 = Vector2(1.7, 13.4)
+## Unity: HandleMovement speedModifier while slowed (hard-coded 0.5f).
+@export var slowed_speed_modifier: float = 0.5
