@@ -79,6 +79,7 @@ func get_on_chair() -> void:
 	p.global_position = sit_spot.global_position
 	RoomLoader.update_spawn_point(name)
 	p.begin_rest_invulnerability()
+	GameState.refill_red_tools() # RestChair.GetOnChair: RefillRedTool before the save
 	save_sfx.play()
 	GameState.save()
 	interact_label.visible = false

@@ -3,7 +3,7 @@ extends Node
 ## Port of PlayerSoundEffect.cs (plan §5.15). Footsteps + one-shot sounds, each played with
 ## a random volume (linear 0.8..1.0) and pitch (0.7..1.3), exactly like Unity's PlaySoundEffect.
 
-enum Sound { ATTACK, DAMAGED, PARRY, SILKBIND, FOOTSTEP, DASH, JUMP, LANDING }
+enum Sound { ATTACK, DAMAGED, PARRY, SILKBIND, FOOTSTEP, DASH, JUMP, LANDING, THROWING, SYRINGE }
 
 const SOUND_PATHS: Dictionary = {
 	Sound.ATTACK: "res://assets/sfx/player_attack.ogg",
@@ -14,6 +14,8 @@ const SOUND_PATHS: Dictionary = {
 	Sound.DASH: "res://assets/sfx/dash.ogg",
 	Sound.JUMP: "res://assets/sfx/jump.ogg",
 	Sound.LANDING: "res://assets/sfx/landing.ogg",
+	Sound.THROWING: "res://assets/sfx/throw.ogg",
+	Sound.SYRINGE: "res://assets/sfx/syringe.ogg",
 }
 
 ## Unity: PlayerSoundEffect.randomVolume Random.Range(0.8, 1) (linear).

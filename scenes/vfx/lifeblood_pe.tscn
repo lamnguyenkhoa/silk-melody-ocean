@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/vfx/one_shot_particles.gd" id="1_jpmyd"]
+
+[sub_resource type="Curve" id="Curve_gujvu"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_8gkdk"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="Gradient" id="Gradient_u4ruv"]
+colors = PackedColorArray(0, 0.855, 1, 1, 0, 0.29, 1, 1)
+
+[node name="LifebloodNeedlePE" type="CPUParticles2D" unique_id=1673675130]
+emitting = false
+amount = 10
+one_shot = true
+explosiveness = 1.0
+direction = Vector2(-1, -0.2)
+gravity = Vector2(0, 156.96)
+initial_velocity_min = 96.0
+initial_velocity_max = 288.0
+scale_amount_min = 3.2
+scale_amount_max = 6.4
+scale_amount_curve = SubResource("Curve_gujvu")
+color_ramp = SubResource("Gradient_8gkdk")
+color_initial_ramp = SubResource("Gradient_u4ruv")
+script = ExtResource("1_jpmyd")

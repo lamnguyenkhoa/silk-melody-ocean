@@ -35,10 +35,23 @@ const SHARD_TEXT_POS := Vector2(18.6, 2.0)
 const SHARD_FONT_SIZE: int = 8
 const SHARD_OUTLINE_SIZE: int = 2
 
+## Unity: UI.prefab "ToolCircle" (ToolCircleUI.cs) anchored at the screen centre (-691, 249), 100x100 (/5).
+## BG = black RadialProgressBar, Fill = the same sprite filled radially (origin Bottom, clockwise) by
+## charge / maxCharge, ToolImage = the selected red tool's icon. Hidden when no red tool is equipped.
+const TOOL_CIRCLE_PATH := "res://assets/ui/tools/RadialProgressBar.png"
+const TOOL_CIRCLE_CENTER := Vector2(53.8, 58.2)
+const TOOL_CIRCLE_SIZE := Vector2(20.0, 20.0)
+const TOOL_CIRCLE_START_ANGLE: float = 180.0
+
 var mask_full: Texture2D
 var mask_empty: Texture2D
 var silk_filled: AtlasTexture
 var silk_empty: AtlasTexture
+
+## Tool circle widgets (null until _ready).
+var tool_circle: Control
+var tool_circle_fill: TextureProgressBar
+var tool_circle_icon: TextureRect
 
 ## Mask icons in order: max_hp permanent ones, then lifeblood ones (test / debug access).
 var masks: Array[TextureRect] = []
@@ -75,8 +88,58 @@ func _ready() -> void:
 	shard_count.add_theme_color_override("font_outline_color", Color.BLACK)
 	shard_count.add_theme_constant_override("outline_size", SHARD_OUTLINE_SIZE)
 
+	_build_tool_circle()
 	GameState.stats_changed.connect(refresh)
 	refresh()
+
+func _build_tool_circle() -> void:
+	tool_circle = Control.new()
+	tool_circle.name = "ToolCircle"
+	tool_circle.position = TOOL_CIRCLE_CENTER - TOOL_CIRCLE_SIZE * 0.5
+	tool_circle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(tool_circle)
+	var circle_texture := load(TOOL_CIRCLE_PATH) as Texture2D
+	var bg := TextureRect.new()
+	bg.name = "BG"
+	_setup_icon(bg, circle_texture, TOOL_CIRCLE_SIZE)
+	bg.size = TOOL_CIRCLE_SIZE
+	bg.modulate = Color.BLACK
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tool_circle.add_child(bg)
+	# TextureProgressBar draws its texture at native size: scale it down to the circle size.
+	tool_circle_fill = TextureProgressBar.new()
+	tool_circle_fill.name = "Fill"
+	tool_circle_fill.texture_progress = circle_texture
+	tool_circle_fill.fill_mode = TextureProgressBar.FILL_CLOCKWISE
+	tool_circle_fill.radial_initial_angle = TOOL_CIRCLE_START_ANGLE
+	tool_circle_fill.radial_fill_degrees = 360.0
+	tool_circle_fill.min_value = 0.0
+	tool_circle_fill.max_value = 1.0
+	tool_circle_fill.step = 0.0
+	tool_circle_fill.value = 0.0
+	tool_circle_fill.scale = TOOL_CIRCLE_SIZE / circle_texture.get_size()
+	tool_circle_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tool_circle.add_child(tool_circle_fill)
+	tool_circle_icon = TextureRect.new()
+	tool_circle_icon.name = "ToolImage"
+	_setup_icon(tool_circle_icon, null, TOOL_CIRCLE_SIZE)
+	tool_circle_icon.size = TOOL_CIRCLE_SIZE
+	tool_circle_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tool_circle.add_child(tool_circle_icon)
+	tool_circle.visible = false
+
+## ToolCircleUI.Update: hidden without equipped red tools, otherwise the selected tool's charge fraction
+## and icon.
+func _refresh_tool_circle() -> void:
+	var tool_id: int = GameState.get_selected_red_tool()
+	if tool_id < 0:
+		tool_circle.visible = false
+		return
+	tool_circle.visible = true
+	tool_circle_fill.value = GameState.get_red_tool_charge(tool_id) / ToolData.red_max_charge(tool_id)
+	var icon: Texture2D = load(ToolData.tool_def(ToolData.ToolKind.RED, tool_id)["icon"] as String) as Texture2D
+	if tool_circle_icon.texture != icon:
+		tool_circle_icon.texture = icon
 
 func _atlas(sheet: Texture2D, region: Rect2) -> AtlasTexture:
 	var a := AtlasTexture.new()
@@ -111,6 +174,7 @@ func refresh() -> void:
 		silk_segments[i].texture = silk_filled if i < GameState.current_silk else silk_empty
 
 	shard_count.text = str(GameState.copper_shard)
+	_refresh_tool_circle()
 
 func _rebuild(box: Container, list: Array[TextureRect], count: int, size: Vector2) -> void:
 	for child in box.get_children():

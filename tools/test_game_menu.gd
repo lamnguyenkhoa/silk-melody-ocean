@@ -622,7 +622,7 @@ func _test_enemy_type_mapping() -> void:
 	gs.reset_to_new_game()
 
 func _test_talisman_placeholder() -> void:
-	_eq("talisman: placeholder page in slot 1", gm.pages[TAB_TALISMAN].get_script().resource_path, "res://scenes/ui/game_menu/talisman_page.gd")
+	_eq("talisman: Talisman page in slot 1 (M2, tests in test_tools.gd)", gm.pages[TAB_TALISMAN].get_script().resource_path, "res://scenes/ui/game_menu/talisman_page.gd")
 	_eq("talisman: tab label 'Tools' at index 1", gm.tab_labels[1].text, "Tools")
 
 func _test_save_roundtrip() -> void:
@@ -715,9 +715,9 @@ func _test_old_save() -> void:
 func _test_debug_inventory() -> void:
 	gs.reset_to_new_game()
 	gs.grant_debug_inventory()
-	_eq("debug inventory: all talismans / tools found", [gs.found_talismans, gs.found_red_tools, gs.found_blue_tools, gs.found_yellow_tools], [[0, 1, 2], [0, 1, 2], [0, 1], [0]])
+	_eq("debug inventory: all talismans / tools found", [gs.found_talismans, gs.found_red_tools, gs.found_blue_tools, gs.found_yellow_tools], [[0, 1], [0, 1, 2], [0, 1], [0]])
 	gs.grant_debug_inventory()
-	_eq("debug inventory: idempotent", gs.found_talismans, [0, 1, 2])
+	_eq("debug inventory: idempotent", gs.found_talismans, [0, 1])
 	_eq("debug inventory: does not equip anything", [gs.equipped_red_tools, gs.equipped_blue_tools], [[], []])
 	gs.reset_to_new_game()
 

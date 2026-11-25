@@ -45,6 +45,12 @@ const CLIPS := {
 			[0.0, 0.06666667, 0.16666667, 0.25, 0.75, 0.8333333, 0.96666664], 0.9833333,
 			false, {0.0: "begin_silk_burst", 0.16666667: "throw_silk_burst",
 			0.8333333: "catch_silk_burst_recoil", 0.96666664: "end_heal"}],
+	# M2: UseLifebloodNeedle.anim (tenroh_useLifeBloodNeedle.png, 4 frames of 256 px, m_StopTime 0.6):
+	# frames 0/1/2/3/3 at 0 / 0.1667 / 0.2 / 0.25 / 0.5833. Events BeginToolAnimLock @0, LifebloodNeedleEffect
+	# @0.25, EndToolAnimLock @0.5833 (the Animator state leaves with an exit transition, so it plays once).
+	"lifeblood_needle": ["tenroh_useLifeBloodNeedle.png", 4, [0, 1, 2, 3, 3],
+			[0.0, 0.16666667, 0.2, 0.25, 0.5833333], 0.6, false,
+			{0.0: "begin_tool_anim_lock", 0.25: "lifeblood_needle_effect", 0.5833333: "end_tool_anim_lock"}],
 }
 
 
@@ -125,6 +131,12 @@ func _initialize() -> void:
 	sfx.set_script(sfx_script)
 	_add(player, player, sfx)
 	sfx.set("player", player)
+
+	# M2: RedToolController (child of the player, like the Unity component).
+	var tool_controller := Node.new()
+	tool_controller.name = "RedToolController"
+	tool_controller.set_script(load("res://scenes/player/red_tool_controller.gd"))
+	_add(player, player, tool_controller)
 
 	var packed := PackedScene.new()
 	var err := packed.pack(player)

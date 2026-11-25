@@ -2,7 +2,8 @@ class_name Player
 extends CharacterBody2D
 ## Port of Player.cs (plan section 5). P2: movement, jump, coyote, ledge grab, dash, animation
 ## state, landing dust. P3: attack / pogo / slashes, parry + riposte, damage pipeline, i-frames,
-## stun, contact damage, status effects, death. P4: silk skills (heal, gossamer, silk burst).
+## stun, contact damage, status effects, death. P4: silk skills (heal, gossamer, silk burst). M2: red tools
+## (HandleToolUsage, toolTimer, toolAnimLock, Lifeblood Needle clip events).
 ##
 ## Flag/lock model like the original: independent bools + a control_lock counter.
 ## Unity space -> Godot space: 1 unit = 16 px, +y is down (see plan section 0).
@@ -33,7 +34,7 @@ const PARRY_CLIPS: Dictionary = {
 ## Physics layer bits (project.godot layer names): Ground = layer 1.
 const GROUND_MASK: int = 1
 ## Actions whose "just pressed / just released" edge is buffered from _input (plan 5.1).
-const EDGE_ACTIONS: Array[StringName] = [&"jump", &"attack", &"dash", &"parry", &"silk_skill"]
+const EDGE_ACTIONS: Array[StringName] = [&"jump", &"attack", &"dash", &"parry", &"silk_skill", &"use_red_tool", &"swap_tool_right"]
 ## Physics ticks swallow_input_edges() blocks.
 const EDGE_BLOCK_TICKS: int = 2
 ## Unity: AnimationControl velocity threshold 0.1 u/s -> px/s.
@@ -48,6 +49,8 @@ const LAYER_ENEMY_ATTACK: int = 16
 const LAYER_PLAYER_TRIGGER: int = 128
 ## Unity: LevelLoader.transitionTime fallback if RoomLoader is not available.
 const DEFAULT_TRANSITION_TIME: float = 1.0
+## Unity FlashBlue sprite colour (the flash shader blends the sprite towards it).
+const LIFEBLOOD_FLASH_COLOR := Color(0.0, 0.5, 1.0)
 const SLASH_SCENE_PATH := "res://scenes/player/player_slash.tscn"
 const SLASH_SPARK_SCENE_PATH := "res://scenes/vfx/slash_spark.tscn"
 const HURT_SPARK_SCENE_PATH := "res://scenes/vfx/hurt_spark.tscn"
@@ -95,6 +98,10 @@ var is_jumping: bool = false
 var is_ledge_grabbing: bool = false
 var is_dead: bool = false
 var in_silk_skill: bool = false
+## Unity toolAnimLock: set / cleared by the Lifeblood Needle clip events (BeginToolAnimLock / EndToolAnimLock).
+var tool_anim_lock: bool = false
+## Unity toolTimer: seconds since the last red tool use (counts every tick).
+var tool_timer: float = 0.0
 var is_parrying: bool = false
 var resting: bool = false
 ## Game menu open (Unity Player.inMenu): blocks the gameplay input gate, physics keeps running.
@@ -145,6 +152,7 @@ var _probe_shape := RectangleShape2D.new()
 @onready var sprite: Sprite2D = $Visual/Sprite2D
 @onready var hurtbox: Area2D = $Hurtbox
 @onready var player_trigger: Area2D = $PlayerTrigger
+@onready var tool_controller: RedToolController = $RedToolController
 
 func _ready() -> void:
 	if stats == null:
@@ -226,6 +234,8 @@ func _physics_process(delta: float) -> void:
 	if not is_parrying:
 		parry_timer += delta
 
+	tool_timer += delta
+
 	if _can_control():
 		_handle_movement()
 		_handle_jump(delta)
@@ -236,6 +246,7 @@ func _physics_process(delta: float) -> void:
 			_handle_ledge_grab()
 		_handle_coyote_time(delta)
 		_handle_silk_skill()
+		_handle_tool_usage()
 
 	_animation_control()
 	_landing_dust(delta)
@@ -253,7 +264,7 @@ func _physics_process(delta: float) -> void:
 
 func _can_control() -> bool:
 	return not resting and control_lock == 0 and not is_dashing and not is_paralyzed \
-			and not in_silk_skill and not is_parrying and not in_menu
+			and not in_silk_skill and not tool_anim_lock and not is_parrying and not in_menu
 
 func _check_grounded() -> void:
 	# Unity: OverlapBox at groundCheck (not is_on_floor), so it stays true while gravity is off.
@@ -454,6 +465,55 @@ func throw_silk_burst() -> void:
 ## Animation event (silk_burst clip @0.8333): pushes the player back, away from the facing side.
 func catch_silk_burst_recoil() -> void:
 	velocity += Vector2(stats.silk_burst_recoil.x * facing(), stats.silk_burst_recoil.y)
+
+# --- M2: red tools ---
+
+## HandleToolUsage(): needs at least one equipped red tool. SwapToolRight cycles the selection; UseRedTool
+## fires the selected tool when not attacking and toolTimer > toolCooldown. The caller already applied the
+## gameplay gate (_can_control: not resting / in a menu / locked / dashing / in a silk skill / tool anim).
+func _handle_tool_usage() -> void:
+	if GameState.equipped_red_tools.is_empty():
+		return
+	if _was_pressed(&"swap_tool_right"):
+		GameState.swap_tool(true)
+	if _was_pressed(&"use_red_tool") and not in_attack and tool_timer > GameState.tool_cooldown:
+		tool_timer = 0.0
+		var used_tool: int = GameState.get_selected_red_tool()
+		if used_tool >= 0:
+			tool_controller.use_red_tool(used_tool)
+
+## RedToolController.UseLifeBloodNeedle: anim.SetTrigger("useLifebloodNeedle").
+func play_lifeblood_needle_anim() -> void:
+	_play_one_shot(&"lifeblood_needle")
+
+## Animation event (lifeblood_needle clip @0.0): BeginToolAnimLock.
+func begin_tool_anim_lock() -> void:
+	tool_anim_lock = true
+	velocity = Vector2.ZERO
+	gravity_on = false
+
+## Animation event (lifeblood_needle clip @0.5833): EndToolAnimLock.
+func end_tool_anim_lock() -> void:
+	tool_anim_lock = false
+	gravity_on = true
+
+## Animation event (lifeblood_needle clip @0.25): LifebloodNeedleEffect.
+func lifeblood_needle_effect() -> void:
+	GameState.add_lifeblood(stats.lifeblood_needle_amount)
+	sfx.play_sound(PlayerSfx.Sound.SYRINGE)
+	_flash_blue()
+	tool_controller.spawn_lifeblood_effect()
+
+## FlashBlue(): flash material tinted (0, 0.5, 1) for 0.15 s.
+func _flash_blue() -> void:
+	_flash_gen += 1
+	var my_gen: int = _flash_gen
+	_flash_material.set_shader_parameter("flash_tint", LIFEBLOOD_FLASH_COLOR)
+	_set_flash(1.0)
+	await _wait(stats.lifeblood_flash_time)
+	if my_gen == _flash_gen:
+		_set_flash(0.0)
+		_flash_material.set_shader_parameter("flash_tint", Color.WHITE)
 
 # --- 5.14 Animation state ---
 
@@ -686,12 +746,14 @@ func damaged(amount: int, knockback_dir: Vector2) -> void:
 	in_attack = false
 	is_paralyzed = false
 	in_silk_skill = false
+	tool_anim_lock = false
 	is_parrying = false
 	parry_state = 0
 	anim_dash_attack = false
 	anim_pogo_attack = false
 	_flash_gen += 1
 	_set_flash(0.0)
+	_flash_material.set_shader_parameter("flash_tint", Color.WHITE)
 	anim.stop() # one-shot clip events (end_heal, end_attack_anim, ...) must not fire later
 	anim_override = &""
 
@@ -852,6 +914,8 @@ func rest_chair_recovery() -> void:
 	_paralyze_gen += 1
 	_slow_gen += 1
 	_end_stun()
+	_flash_material.set_shader_parameter("flash_tint", Color.WHITE)
+	tool_anim_lock = false
 	if in_i_frame:
 		_end_i_frames()
 	is_parrying = false

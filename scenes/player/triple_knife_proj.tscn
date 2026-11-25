@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/player/tool_projectile.gd" id="1_dtkpd"]
+[ext_resource type="Texture2D" path="res://assets/player/ThrowBladeProjectile.png" id="2_keh1l"]
+[ext_resource type="AudioStream" path="res://assets/sfx/knife_collide.ogg" id="3_n8db0"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2l0gm"]
+size = Vector2(16.745193, 6.962372)
+
+[node name="TripleKnifeProj" type="Area2D" unique_id=1597772351]
+collision_layer = 8
+collision_mask = 5
+script = ExtResource("1_dtkpd")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2079148388]
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("2_keh1l")
+
+[node name="Shape" type="CollisionShape2D" parent="." unique_id=1389576784]
+position = Vector2(0.37259674, 0.071640015)
+shape = SubResource("RectangleShape2D_2l0gm")
+
+[node name="CollideSound" type="AudioStreamPlayer" parent="." unique_id=1995956353]
+stream = ExtResource("3_n8db0")

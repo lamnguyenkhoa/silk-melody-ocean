@@ -85,6 +85,13 @@ extends Resource
 ## Re-check Hurtbox overlaps this many physics ticks after i-frames end (Godot-only addition).
 @export var contact_recheck_ticks: int = 2
 
+# --- M2: red tools (RedToolController / Player.LifebloodNeedleEffect) ---
+
+## Unity: LifebloodNeedleEffect `lifebloodHp += 2`.
+@export var lifeblood_needle_amount: int = 2
+## Unity: FlashBlue WaitForSeconds(0.15).
+@export var lifeblood_flash_time: float = 0.15
+
 # --- P4: silk skills (Player.cs HandleSilkSkill / BeginHeal ... CatchSilkBurstRecoil) ---
 
 ## Unity: HandleSilkSkill hard-coded silk costs (paid at press).

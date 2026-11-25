@@ -4,6 +4,8 @@ extends Node
 ## world data lives in GameState.world (GameState.world.enemy_kill_count, ...).
 
 signal stats_changed
+## GameMaster.OnTalismanChange: fired whenever tools are equipped / unequipped or the talisman changes.
+signal talisman_changed
 
 const PLAYER_SAVE_PATH := "user://player.json"
 const WORLD_SAVE_PATH := "user://world.json"
@@ -37,7 +39,7 @@ var enemy_knockback_power: float = 80.0
 var attack_cooldown: float = 0.15
 var parry_window: float = 0.25
 var parry_cooldown: float = 1.0
-## Unused for now (tool code paths are out of scope).
+## Red tool use cooldown (PlayerData.toolCooldown 0.35 s).
 var tool_cooldown: float = 0.35
 var stun_time: float = 0.4
 var i_frame_time: float = 1.5
@@ -47,7 +49,7 @@ var respawn_pos: Vector2 = Vector2.ZERO
 var copper_shard: int = 0
 var scale_shard: int = 0
 
-# --- PlayerData inventory / talisman / tools (M1 data, behaviour for the tools comes in M2) ---
+# --- PlayerData inventory / talisman / tools (M1 data, equip / use behaviour in M2) ---
 ## Amount per ItemName (inventoryItemAmount).
 var inventory_item_amount: Array[int] = []
 ## TalismanName values.
@@ -134,10 +136,11 @@ func get_item_amount(item: int) -> int:
 func get_kill_count(enemy_type: int) -> int:
 	return int(world.enemy_kill_count.get(enemy_type, 0))
 
-## Unity's editor-only `debugInventory` flag (GameMaster.InitNewGameData): every talisman and every tool
-## is found. Called from the debug-build key in world.gd.
+## Unity's editor-only `debugInventory` flag (GameMaster.InitNewGameData): every talisman that has a prefab
+## (Wanderer, Sentinel: GameMaster.talismanData has no Toolmaster) and every tool is found. Called from the
+## debug-build key (F8) in world.gd.
 func grant_debug_inventory() -> void:
-	for t: int in InventoryIds.TalismanName.values():
+	for t: int in ToolData.layout_talismans():
 		if not found_talismans.has(t):
 			found_talismans.append(t)
 	for t: int in InventoryIds.RedToolName.values():
@@ -149,6 +152,111 @@ func grant_debug_inventory() -> void:
 	for t: int in InventoryIds.YellowToolName.values():
 		if not found_yellow_tools.has(t):
 			found_yellow_tools.append(t)
+	talisman_changed.emit()
+	stats_changed.emit()
+
+# --- Talisman / tools (GameMaster.cs) ---
+
+## The talisman whose crest is shown (GameMaster.equippedTalisman). An equipped talisman that is not in
+## foundTalismans falls back to the Wanderer, the prefab the inventory menu starts with.
+func effective_talisman() -> int:
+	if found_talismans.has(equipped_talisman):
+		return equipped_talisman
+	return InventoryIds.TalismanName.WANDERER
+
+func red_slot_count() -> int:
+	return (ToolData.layout(effective_talisman())["red"] as Array).size()
+
+func blue_slot_count() -> int:
+	return (ToolData.layout(effective_talisman())["blue"] as Array).size()
+
+func yellow_slot_count() -> int:
+	return (ToolData.layout(effective_talisman())["yellow"] as Array).size()
+
+## GameMaster.ChangeToNextTalisman: cycles foundTalismans (wraps) and unequips every tool.
+func change_to_next_talisman() -> void:
+	if found_talismans.size() <= 1:
+		return
+	unequip_all_tools()
+	var index: int = found_talismans.find(effective_talisman())
+	index += 1
+	if index > found_talismans.size() - 1:
+		index = 0
+	equipped_talisman = found_talismans[index]
+	talisman_changed.emit()
+	stats_changed.emit()
+
+## GameMaster.UnequipAllTools (selectedRedToolId is left alone, like Unity).
+func unequip_all_tools() -> void:
+	equipped_red_tools.clear()
+	equipped_blue_tools.clear()
+	equipped_yellow_tools.clear()
+	talisman_changed.emit()
+	stats_changed.emit()
+
+## GameMaster.RefillRedTool (rest chair): every red tool back to maxCharge.
+func refill_red_tools() -> void:
+	red_tools_current_charge = _full_red_tool_charges()
+	stats_changed.emit()
+
+## GameMaster.SwapTool(rightDirection): cycles the selected red tool, wraps.
+func swap_tool(right_direction: bool) -> void:
+	if equipped_red_tools.is_empty():
+		return
+	if right_direction:
+		selected_red_tool_id += 1
+	else:
+		selected_red_tool_id -= 1
+	if selected_red_tool_id > equipped_red_tools.size() - 1:
+		selected_red_tool_id = 0
+	if selected_red_tool_id < 0:
+		selected_red_tool_id = equipped_red_tools.size() - 1
+	stats_changed.emit()
+
+## The selected red tool (RedToolName) or -1 when none is equipped / the index is out of range.
+func get_selected_red_tool() -> int:
+	if selected_red_tool_id < 0 or selected_red_tool_id >= equipped_red_tools.size():
+		return -1
+	return equipped_red_tools[selected_red_tool_id]
+
+func get_red_tool_charge(tool_id: int) -> float:
+	if tool_id < 0 or tool_id >= red_tools_current_charge.size():
+		return 0.0
+	return red_tools_current_charge[tool_id]
+
+## Uses one charge of a red tool (the controllers did `redToolsCurrentCharge[id] -= 1`).
+func consume_red_tool_charge(tool_id: int) -> void:
+	if tool_id < 0 or tool_id >= red_tools_current_charge.size():
+		return
+	red_tools_current_charge[tool_id] -= 1.0
+	stats_changed.emit()
+
+## GameMaster.EquipUnequipRedTool: toggles; equipping needs a free slot on the talisman.
+func equip_unequip_red_tool(tool_id: int) -> void:
+	if equipped_red_tools.has(tool_id):
+		equipped_red_tools.erase(tool_id)
+	elif equipped_red_tools.size() < red_slot_count():
+		equipped_red_tools.append(tool_id)
+	# Remove unequipped but selected tool.
+	if selected_red_tool_id >= equipped_red_tools.size():
+		if equipped_red_tools.size() > 0:
+			selected_red_tool_id = 0
+	talisman_changed.emit()
+	stats_changed.emit()
+
+func equip_unequip_blue_tool(tool_id: int) -> void:
+	_toggle_tool(equipped_blue_tools, tool_id, blue_slot_count())
+
+func equip_unequip_yellow_tool(tool_id: int) -> void:
+	_toggle_tool(equipped_yellow_tools, tool_id, yellow_slot_count())
+
+func _toggle_tool(list: Array[int], tool_id: int, slots: int) -> void:
+	if list.has(tool_id):
+		list.erase(tool_id)
+	elif list.size() < slots:
+		list.append(tool_id)
+	talisman_changed.emit()
+	stats_changed.emit()
 
 ## Stat helpers: every gameplay change of hp / lifeblood / silk / shards goes through here (or emits
 ## stats_changed itself) so the HUD (which listens to the signal, never polls) stays in sync.
@@ -184,6 +292,7 @@ func load_save() -> bool:
 	var w: Variant = _read_json(WORLD_SAVE_PATH)
 	if w is Dictionary:
 		_apply_world_dict(w)
+	talisman_changed.emit()
 	stats_changed.emit()
 	return true
 
