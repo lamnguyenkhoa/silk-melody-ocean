@@ -1,0 +1,21 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Godot 4+ extras
+*.tmp
+*.translation
+export_presets.cfg
+.mono/
+data_*/
+/build/
+/export/
+*.apk
+*.aab
+*.exe
+*.pck
+*.zip
+.import/
+.vs/
+.vscode/
+.idea/
