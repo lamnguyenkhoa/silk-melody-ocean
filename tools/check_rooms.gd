@@ -66,6 +66,9 @@ func _check_room(n: int, room: Node, rooms: Array[Node]) -> void:
 			print("  enemy %s (%s) pos=%s unity '%s' solid_cell=%s" % [c.name, script_name, (c as Node2D).position, c.get_meta("unity_name"), _is_solid(room, (c as Node2D).position)])
 			_check(c is CharacterBody2D and script_name == String(c.get_meta("enemy_type")).to_lower() + ".gd", "%s is a real %s enemy instance" % [c.name, c.get_meta("enemy_type")])
 			_check(not _is_solid(room, (c as Node2D).position), "%s starts in empty space" % c.name)
+		elif c.is_in_group("rest_chairs"):
+			print("  rest_chair %s pos=%s solid_cell=%s" % [c.name, (c as Node2D).position, _is_solid(room, (c as Node2D).position)])
+			_check(c is Area2D and c.get_script() != null and c.get_node_or_null("SitSpot") is Marker2D, "%s is a real RestChair instance with a SitSpot" % c.name)
 		elif c is Marker2D:
 			var kind := "marker"
 			if c.is_in_group("spawn_points"):

@@ -850,6 +850,18 @@ func rest_chair_recovery() -> void:
 	anim_dash_attack = false
 	anim_pogo_attack = false
 
+## RestChair.GetOnChair: invulnerable to enemies while sitting (Unity: IgnoreLayerCollision(Player,
+## Enemy / EnemyAttack)). Implemented as an endless i-frame (hurtbox off, no blink) so bullets, which
+## skip the player while in_i_frame, pass through too.
+func begin_rest_invulnerability() -> void:
+	_iframe_gen += 1
+	_begin_i_frames(false)
+
+## RestChair.GetOffChair: collisions back on (re-checks overlapping enemies, like the i-frame end).
+func end_rest_invulnerability() -> void:
+	_iframe_gen += 1
+	_end_i_frames()
+
 ## FlashWhite(): sprite shows the white flash material for [param duration].
 func flash_white(duration: float = -1.0) -> void:
 	_flash_gen += 1

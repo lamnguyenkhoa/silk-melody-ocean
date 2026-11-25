@@ -1,9 +1,8 @@
 class_name World
 extends Node2D
-## Persistent world root (plan 7.1). P2: loads DirtCave0 directly; RoomLoader takes over in P6.
+## Persistent world root (plan 7.1). Owns Player, camera, HUD, fader; RoomLoader swaps the rooms
+## under RoomContainer and loads / places everything on boot (RoomLoader.start()).
 
-## P2 only: room loaded straight into RoomContainer.
-const P2_START_ROOM: String = "res://scenes/rooms/dirt_cave_0.tscn"
 ## Debug camera-shake test (F9): Unity damage shake uses intensity 5 for 0.3 s.
 const DEBUG_SHAKE_INTENSITY: float = 5.0
 const DEBUG_SHAKE_TIME: float = 0.3
@@ -20,52 +19,33 @@ const FLOOR_SCAN_TILES: int = 80
 const TILE_SIZE: float = 16.0
 ## Spawn the dummy a bit above the floor and let gravity settle it.
 const DUMMY_DROP_HEIGHT: float = 24.0
-## P3 only: the RoomLoader stub (P6) does not respawn, so the world puts the player back at
-## PlayerStart after the death transition.
-const P3_RESPAWN_FALLBACK_DELAY: float = 1.0
-## Debug only, until RoomLoader exits work in P6: F6 / F7 jump to the previous / next room.
-const DEBUG_ROOMS: Array[String] = [
-	"res://scenes/rooms/dirt_cave_0.tscn",
-	"res://scenes/rooms/dirt_cave_1.tscn",
-	"res://scenes/rooms/dirt_cave_2.tscn",
-	"res://scenes/rooms/dirt_cave_3.tscn",
-]
+## Debug builds only: training dummies spawn in this room (the start room) and nowhere else.
+const DEBUG_DUMMY_ROOM: String = "DirtCave0"
 
 @onready var room_container: Node2D = $RoomContainer
 @onready var player: Player = $Player
 @onready var camera: GameCamera = $GameCamera
 
+@onready var fader: Fader = $Fader
+
+## Set by RoomLoader on every room swap.
 var current_room: Node
-var _debug_room_index: int = 0
+## Tests set this to false before adding the world to the tree.
+var spawn_debug_dummies: bool = true
 
 func _ready() -> void:
 	camera.target = player
-	_load_room_direct(P2_START_ROOM)
-	player.died.connect(_on_player_died)
-	if OS.is_debug_build():
+	RoomLoader.register_world(self, player, camera, fader, room_container)
+	RoomLoader.room_loaded.connect(_on_room_loaded)
+	RoomLoader.start()
+
+func _exit_tree() -> void:
+	if RoomLoader.room_loaded.is_connected(_on_room_loaded):
+		RoomLoader.room_loaded.disconnect(_on_room_loaded)
+
+func _on_room_loaded(room: Node, room_name: String) -> void:
+	if OS.is_debug_build() and spawn_debug_dummies and room_name == DEBUG_DUMMY_ROOM:
 		_spawn_debug_dummies()
-
-func _load_room_direct(path: String) -> void:
-	if current_room != null:
-		current_room.queue_free()
-	current_room = (load(path) as PackedScene).instantiate()
-	room_container.add_child(current_room)
-	camera.set_room_limits(current_room)
-	var start := current_room.get_node_or_null("PlayerStart") as Node2D
-	if start != null:
-		player.global_position = start.global_position
-		player.velocity = Vector2.ZERO
-	camera.snap_to_target()
-
-## TODO(P6): RoomLoader.respawn() replaces this.
-func _on_player_died() -> void:
-	await get_tree().create_timer(P3_RESPAWN_FALLBACK_DELAY, true, true).timeout
-	var start := current_room.get_node_or_null("PlayerStart") as Node2D
-	if start != null:
-		player.global_position = start.global_position
-	player.velocity = Vector2.ZERO
-	player.is_kinematic = false
-	camera.snap_to_target()
 
 ## Debug builds only: training dummies on the floor near the PlayerStart landing spot
 ## (placed at runtime, not baked into the room scene).
@@ -124,8 +104,3 @@ func _unhandled_input(event: InputEvent) -> void:
 			GameState.add_lifeblood(1)
 		KEY_F12:
 			GameState.add_silk(GameState.max_silk)
-		KEY_F6, KEY_F7:
-			var step: int = -1 if key.keycode == KEY_F6 else 1
-			_debug_room_index = posmod(_debug_room_index + step, DEBUG_ROOMS.size())
-			_load_room_direct(DEBUG_ROOMS[_debug_room_index])
-			print("debug room: ", DEBUG_ROOMS[_debug_room_index])

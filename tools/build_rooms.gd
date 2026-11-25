@@ -7,6 +7,8 @@ const DATA_DIR := "res://tools/room_data/"
 const ROOM_DIR := "res://scenes/rooms/"
 const TILESET_PATH := "res://scenes/rooms/sunnyland_tileset.tres"
 const EXIT_SCENE := "res://scenes/interactables/room_exit.tscn"
+## P6: RestChair instances (P1 emitted Marker2D placeholders); built by tools/build_interactables.gd.
+const CHAIR_SCENE := "res://scenes/interactables/rest_chair.tscn"
 ## Enemy type (from the Unity prefab GUID) -> scene (P5; P1 emitted Marker2D placeholders).
 const ENEMY_SCENES := {
 	"Crawling": "res://scenes/enemies/crawling.tscn",
@@ -140,7 +142,7 @@ func _build_room(n: int, d: Dictionary, tileset: TileSet, exit_scene: PackedScen
 		m.add_to_group("enemy_spawns", true)
 
 	for c: Dictionary in d["rest_chairs"]:
-		var m := Marker2D.new()
+		var m: Node2D = (load(CHAIR_SCENE) as PackedScene).instantiate()
 		m.name = c["name"]
 		m.position = Vector2(c["pos"][0], c["pos"][1])
 		root.add_child(m)
