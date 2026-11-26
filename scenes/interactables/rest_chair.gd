@@ -1,7 +1,7 @@
 class_name RestChair
 extends Area2D
 ## Port of RestChair.cs + InRangeInteractable.cs (plan 7.3). Area2D (mask PlayerTrigger) sized like
-## the prefab's trigger BoxCollider2D. Children (built by tools/build_interactables.gd): Sprite2D,
+## the prefab's trigger BoxCollider2D. Children: Sprite2D,
 ## CollisionShape2D, SitSpot (Marker2D), InteractLabel, Ui (CanvasLayer: SoftFlash, SavingText), SaveSfx.
 
 ## Unity: RestChair.SoftFlash start alpha (100 / 255) and decay per second.

@@ -408,6 +408,9 @@ On damage: vignette intensity 0.6, lerping back to the base value over 2 s. A Co
 
 ## 8. DirtCave room converter (`tools/unity_room_converter.py`)
 
+> **2026-11-26: all builder scripts and the room pipeline were deleted** (`tools/build_*.gd`, `tools/unity_room_converter.py`, `tools/room_data/`, `tools/room_previews/`, `tools/setup_project_settings.gd`). The committed `.tscn`/`.tres` files are now the source of truth and are edited in the Godot editor. References to builders below are historical; the deleted files are in git history (last present in commit 48f59f4).
+
+
 Rooms to convert: **DirtCave0 ↔ DirtCave1 ↔ DirtCave2 ↔ DirtCave3**.
 
 | Room | Tiles | Contents | Exits (levelName → spawnPosName) |
@@ -462,6 +465,9 @@ To check sprite slicing and PPU for a file, read its `.png.meta` (`spritePixelsT
 ---
 
 ## 10. Build phases for Sonnet
+
+> **2026-11-26: all builder scripts and the room pipeline were deleted** (`tools/build_*.gd`, `tools/unity_room_converter.py`, `tools/room_data/`, `tools/room_previews/`, `tools/setup_project_settings.gd`). The committed `.tscn`/`.tres` files are now the source of truth and are edited in the Godot editor. References to builders below are historical; the deleted files are in git history (last present in commit 48f59f4).
+
 
 Run **one phase per Sonnet session**. Each phase ends with:
 - (a) a headless parse/run check: `"D:\Godot_v4.7.1-stable_win64.exe\Godot_v4.7.1-stable_win64_console.exe" --headless --path D:\GodotProjects\silk-melody-ocean --import`, then `--headless --path … --quit-after 120` with **zero script errors** in the output;
@@ -721,3 +727,8 @@ Scope was out of the original port (§1); the user asked for all four tabs inclu
 
 ### 13.3 Done criteria per phase
 - Builders/scenes per project conventions; new test script (`tools/test_game_menu.gd` for M1, `tools/test_tools.gd` for M2), all earlier tests still pass, headless main scene clean, a screenshot of each tab taken by running Godot non-headless with a script that saves `get_viewport().get_texture().get_image()` and checked by eye, local commit with the Opus co-author line, §12 entry.
+
+### Builders removed - 2026-11-26
+- Deleted at the user's request: `tools/build_{player,combat,skills,enemies,interactables,tools,rooms}.gd`, `tools/unity_room_converter.py` with `tools/room_data/*.json` and `tools/room_previews/*.png`, and `tools/setup_project_settings.gd` (it rewrote `project.godot`). Nothing in the game or the tests referenced them.
+- Why: the generated scenes are committed and loaded directly; re-running `build_skills.gd` would have overwritten the editor-placed `hud.tscn`, `build_rooms.gd` would have overwritten `sunnyland_tileset.tres` and the rooms, and `setup_project_settings.gd` would have overwritten `project.godot`.
+- Now: edit scenes in the editor. Porting further Unity rooms (DirtCave4+) means restoring the converter from git history (commit 48f59f4) or building rooms by hand.
