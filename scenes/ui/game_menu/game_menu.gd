@@ -20,9 +20,7 @@ signal tab_changed(tab: int)
 ## Unity: InventoryMenu.Update open branches.
 const OPEN_INVENTORY_TAB: int = GameMenuData.Tab.TALISMAN
 const OPEN_MAP_TAB: int = GameMenuData.Tab.MAP
-## Unity: Background Image colour (0, 0, 0, 0.8627451).
-const BACKGROUND_COLOR := Color(0.0, 0.0, 0.0, 0.8627451)
-const TAB_UNDERLINE_COLOR := Color.WHITE
+const BOLD_FONT := preload("res://scenes/ui/game_menu/menu_font_bold.tres")
 
 ## Set by World.
 var player: Player
@@ -30,15 +28,10 @@ var pause_menu: PauseMenu
 
 var current_tab: int = 0
 var pages: Array[MenuPage] = []
-var inventory_page: InventoryPage
-var talisman_page: TalismanPage
-var map_page: MapPage
-var journal_page: JournalPage
 var tab_labels: Array[Label] = []
 
 var _open: bool = false
 var _closed_frame: int = -1
-var _tab_underline: ColorRect
 var _focus_generation: int = 0
 
 @onready var _open_sfx: AudioStreamPlayer = $Sfx/OpenInventory
@@ -46,51 +39,23 @@ var _focus_generation: int = 0
 @onready var _moving_sfx: AudioStreamPlayer = $Sfx/Moving
 @onready var _pressed_sfx: AudioStreamPlayer = $Sfx/Pressed
 
+## The page scenes (pages/*.tscn) and the tab header are placed in game_menu.tscn.
+@onready var inventory_page: InventoryPage = $Holder/InventoryGroup
+@onready var talisman_page: TalismanPage = $Holder/TalismanGroup
+@onready var map_page: MapPage = $Holder/MapGroup
+@onready var journal_page: JournalPage = $Holder/JournalGroup
+@onready var _tab_underline: ColorRect = $Holder/MenuTab/Underline
+
 func _ready() -> void:
 	visible = false
-	var holder := Control.new()
-	holder.name = "Holder"
-	holder.set_anchors_preset(Control.PRESET_FULL_RECT)
-	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(holder)
-	var background := ColorRect.new()
-	background.name = "Background"
-	background.color = BACKGROUND_COLOR
-	background.set_anchors_preset(Control.PRESET_FULL_RECT)
-	background.mouse_filter = Control.MOUSE_FILTER_STOP
-	holder.add_child(background)
-
 	# Pages in tab order.
-	inventory_page = InventoryPage.new()
-	inventory_page.name = "InventoryGroup"
-	talisman_page = TalismanPage.new()
-	talisman_page.name = "TalismanGroup"
-	map_page = MapPage.new()
-	map_page.name = "MapGroup"
-	journal_page = JournalPage.new()
-	journal_page.name = "JournalGroup"
 	pages = [inventory_page, talisman_page, map_page, journal_page]
 	for page: MenuPage in pages:
 		page.menu = self
 		page.visible = false
-		holder.add_child(page)
-
-	# MenuTab header (on top of every page, like the prefab's last child of each group).
-	var tab_bar := Control.new()
-	tab_bar.name = "MenuTab"
-	tab_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	holder.add_child(tab_bar)
-	for i in GameMenuData.TAB_NAMES.size():
-		var center := Vector2(GameMenuData.TAB_BAR_LEFT + GameMenuData.TAB_BOX_SIZE.x * 0.5 + i * GameMenuData.TAB_STEP,
-				GameMenuData.TAB_BAR_TOP - GameMenuData.TAB_BOX_SIZE.y * 0.5)
-		var label := GameMenuUi.make_label(GameMenuData.TAB_NAMES[i], GameMenuData.rect_px(center, GameMenuData.TAB_BOX_SIZE),
-				GameMenuData.font_px(GameMenuData.TAB_FONT_OTHER), HORIZONTAL_ALIGNMENT_CENTER, VERTICAL_ALIGNMENT_CENTER, 0, false)
-		label.name = GameMenuData.TAB_NAMES[i]
-		tab_bar.add_child(label)
-		tab_labels.append(label)
-	_tab_underline = GameMenuUi.make_rect(Rect2(), TAB_UNDERLINE_COLOR)
-	_tab_underline.name = "Underline"
-	tab_bar.add_child(_tab_underline)
+	for label: Node in $Holder/MenuTab.get_children():
+		if label is Label:
+			tab_labels.append(label as Label)
 
 func _exit_tree() -> void:
 	# The world was freed while open: never leave the player flagged.
@@ -181,7 +146,10 @@ func _update_tab_bar() -> void:
 		var current: bool = i == current_tab
 		var px: int = GameMenuData.font_px(GameMenuData.TAB_FONT_CURRENT if current else GameMenuData.TAB_FONT_OTHER)
 		label.add_theme_font_size_override("font_size", px)
-		label.add_theme_font_override("font", GameMenuUi.font_for(GameMenuUi.BOLD if current else 0))
+		if current:
+			label.add_theme_font_override("font", BOLD_FONT)
+		else:
+			label.remove_theme_font_override("font")
 	# Underline of the current tab (TMP font style Bold | Underline).
 	var cur: Label = tab_labels[current_tab]
 	var font: Font = cur.get_theme_font("font")

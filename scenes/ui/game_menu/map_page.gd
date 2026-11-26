@@ -1,12 +1,14 @@
 class_name MapPage
 extends MenuPage
 ## Port of MapPage.cs / RoomDisplay.cs / PathDisplay.cs / PlayerMarker (+ the MapGroup layout of
-## InventoryMenu.prefab). MapContent holds the area(s); only rooms in GameState.world.visited_rooms are shown
-## (a path is shown when either of its rooms was visited). On show the content is reset to scale 1 and centred on
-## the current room, with the pulsing mask marker on it. Pan: W/A/S/D / right stick, zoom: R / F (or the triggers),
-## scale clamped to 0.2..3.
+## InventoryMenu.prefab). pages/map_page.tscn holds MapContent > area(s) > PathGroup (one ColorRect per path,
+## metadata "rooms" = the two room names it connects) and one ColorRect per room (with its icon as child).
+## Only rooms in GameState.world.visited_rooms are shown (a path is shown when either of its rooms was
+## visited). On show the content is reset to scale 1 and centred on the current room, with the pulsing mask
+## marker on it. Pan: W/A/S/D / right stick, zoom: R / F (or the triggers), scale clamped to 0.2..3.
 
-var content: Control
+const MARKER_SCENE := preload("res://scenes/ui/game_menu/pages/map_player_marker.tscn")
+
 ## Room name -> room rect node.
 var room_nodes: Dictionary = {}
 ## Room name -> its area node.
@@ -16,44 +18,19 @@ var marker: TextureRect
 
 var _path_rooms: Dictionary = {} # path node -> [room0, room1]
 
-func _ready() -> void:
-	content = GameMenuUi.make_origin(GameMenuData.SCREEN_CENTER)
-	content.name = "MapContent"
-	add_child(content)
-	for area_def: Dictionary in GameMenuData.MAP_AREAS:
-		var area := GameMenuUi.make_origin(GameMenuData.to_px(area_def["pos"]))
-		area.name = area_def["name"]
-		content.add_child(area)
-		var path_group := GameMenuUi.make_origin(Vector2.ZERO)
-		path_group.name = "PathGroup"
-		area.add_child(path_group)
-		for path_def: Dictionary in area_def["paths"]:
-			var path := _make_centred_rect(path_def["pos"], GameMenuData.MAP_PATH_SIZE, GameMenuData.MAP_PATH_COLOR)
-			path.name = "%s %s" % [String(path_def["room0"]).trim_prefix("DirtCave"), String(path_def["room1"]).trim_prefix("DirtCave")]
-			# Unity z rotation is counter-clockwise, Godot's is clockwise.
-			path.rotation = -deg_to_rad(float(path_def["rot"]))
-			path_group.add_child(path)
-			path_nodes.append(path)
-			_path_rooms[path] = [path_def["room0"], path_def["room1"]]
-		for room_def: Dictionary in area_def["rooms"]:
-			var room := _make_centred_rect(room_def["pos"], room_def["size"], GameMenuData.MAP_ROOM_COLOR)
-			room.name = room_def["name"]
-			area.add_child(room)
-			room_nodes[room.name] = room
-			room_areas[room.name] = area
-			if room_def.has("icon"):
-				var icon_size: Vector2 = room_def.get("icon_size", GameMenuData.MAP_ICON_SIZE) * GameMenuData.CANVAS_TO_PX
-				var icon_pos: Vector2 = GameMenuData.to_px(room_def.get("icon_pos", Vector2.ZERO))
-				var icon := GameMenuUi.make_texture(load(room_def["icon"]) as Texture2D, Rect2(room.size * 0.5 + icon_pos - icon_size * 0.5, icon_size))
-				icon.name = "Image"
-				room.add_child(icon)
+@onready var content: Control = $MapContent
 
-## A Unity element with centre `pos` (relative to the parent origin) and `size` (canvas units): Control with
-## its pivot at the centre so rotation turns it in place.
-func _make_centred_rect(pos: Vector2, size: Vector2, color: Color) -> ColorRect:
-	var r := GameMenuUi.make_rect(Rect2(GameMenuData.to_px(pos) - size * (GameMenuData.CANVAS_TO_PX * 0.5), size * GameMenuData.CANVAS_TO_PX), color)
-	r.pivot_offset = r.size * 0.5
-	return r
+func _ready() -> void:
+	for area: Control in content.get_children():
+		for child in area.get_children():
+			var node := child as Control
+			if node.name == &"PathGroup":
+				for path: Control in node.get_children():
+					path_nodes.append(path)
+					_path_rooms[path] = Array(path.get_meta("rooms") as PackedStringArray)
+			else:
+				room_nodes[node.name] = node
+				room_areas[node.name] = area
 
 ## RoomDisplay / PathDisplay.OnEnable + MapPage.OnEnable (UpdatePlayerPosOnMap).
 func page_shown() -> void:
@@ -78,11 +55,9 @@ func update_player_pos(current_scene_name: String) -> bool:
 		return false
 	var room := room_nodes[current_scene_name] as Control
 	var area := room_areas[current_scene_name] as Control
-	marker = GameMenuUi.make_texture(load(GameMenuData.MAP_MARKER_TEXTURE) as Texture2D,
-			Rect2(room.size * 0.5 - GameMenuData.MAP_MARKER_SIZE * GameMenuData.CANVAS_TO_PX * 0.5, GameMenuData.MAP_MARKER_SIZE * GameMenuData.CANVAS_TO_PX))
-	marker.name = "PlayerMarker"
-	marker.pivot_offset = marker.size * 0.5
+	marker = MARKER_SCENE.instantiate() as TextureRect
 	room.add_child(marker)
+	marker.position = (room.size - marker.size) * 0.5
 	# Auto centring: content = -(area position) - (room position), in the content's own (unscaled) space.
 	content.scale = Vector2.ONE
 	content.position = GameMenuData.SCREEN_CENTER - area.position - (room.position + room.size * 0.5)

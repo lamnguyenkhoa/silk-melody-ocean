@@ -5,6 +5,11 @@
 [ext_resource type="AudioStream" path="res://assets/sfx/close_inventory.wav" id="3"]
 [ext_resource type="AudioStream" path="res://assets/sfx/menu_button.ogg" id="4"]
 [ext_resource type="AudioStream" path="res://assets/sfx/inventory_equip.ogg" id="5"]
+[ext_resource type="Theme" path="res://scenes/ui/game_menu/game_menu_theme.tres" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_menu/pages/inventory_page.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_menu/pages/talisman_page.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_menu/pages/map_page.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_menu/pages/journal_page.tscn" id="10"]
 
 [node name="GameMenu" type="CanvasLayer"]
 layer = 25
@@ -24,3 +29,100 @@ stream = ExtResource("4")
 
 [node name="Pressed" type="AudioStreamPlayer" parent="Sfx"]
 stream = ExtResource("5")
+
+[node name="Holder" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("6")
+
+[node name="Background" type="ColorRect" parent="Holder"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.0, 0.0, 0.0, 0.8627451)
+
+[node name="InventoryGroup" parent="Holder" instance=ExtResource("7")]
+layout_mode = 1
+visible = false
+
+[node name="TalismanGroup" parent="Holder" instance=ExtResource("8")]
+layout_mode = 1
+visible = false
+
+[node name="MapGroup" parent="Holder" instance=ExtResource("9")]
+layout_mode = 1
+visible = false
+
+[node name="JournalGroup" parent="Holder" instance=ExtResource("10")]
+layout_mode = 1
+visible = false
+
+[node name="MenuTab" type="Control" parent="Holder"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+mouse_filter = 2
+
+[node name="Inventory" type="Label" parent="Holder/MenuTab"]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 8.0
+offset_right = 108.0
+offset_bottom = 31.0
+theme_override_font_sizes/font_size = 8
+text = "Inventory"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Tools" type="Label" parent="Holder/MenuTab"]
+layout_mode = 0
+offset_left = 124.0
+offset_top = 8.0
+offset_right = 184.0
+offset_bottom = 31.0
+theme_override_font_sizes/font_size = 8
+text = "Tools"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Map" type="Label" parent="Holder/MenuTab"]
+layout_mode = 0
+offset_left = 200.0
+offset_top = 8.0
+offset_right = 260.0
+offset_bottom = 31.0
+theme_override_font_sizes/font_size = 8
+text = "Map"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Journal" type="Label" parent="Holder/MenuTab"]
+layout_mode = 0
+offset_left = 276.0
+offset_top = 8.0
+offset_right = 336.0
+offset_bottom = 31.0
+theme_override_font_sizes/font_size = 8
+text = "Journal"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Underline" type="ColorRect" parent="Holder/MenuTab"]
+layout_mode = 0
+offset_left = 134.0
+offset_top = 17.0
+offset_right = 154.0
+offset_bottom = 18.0
+mouse_filter = 2
+color = Color(1.0, 1.0, 1.0, 1.0)

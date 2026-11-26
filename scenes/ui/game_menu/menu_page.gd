@@ -1,14 +1,11 @@
 class_name MenuPage
 extends Control
-## Base of the game menu tab pages. The page is built once; `page_shown` / `page_hidden` are Unity's
-## OnEnable / OnDisable (the menu is persistent, pages are shown and hidden by SetActive).
+## Base of the game menu tab pages (the page scenes live in pages/). The page is built once by its scene;
+## `page_shown` / `page_hidden` are Unity's OnEnable / OnDisable (the menu is persistent, pages are shown and
+## hidden by SetActive).
 
 ## Plays the menu's "moving" sound (set by the GameMenu).
 var menu: Node
-
-func _init() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func page_shown() -> void:
 	pass

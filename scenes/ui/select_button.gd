@@ -39,28 +39,21 @@ func _ready() -> void:
 	flat = true
 	alignment = HORIZONTAL_ALIGNMENT_CENTER
 	focus_mode = Control.FOCUS_ALL
-	add_theme_font_size_override("font_size", font_size_px if font_size_px > 0 else FONT_SIZE)
+	if font_size_px > 0:
+		add_theme_font_size_override("font_size", font_size_px)
+	elif not has_theme_font_size_override("font_size"):
+		add_theme_font_size_override("font_size", FONT_SIZE)
 	for style_name: String in ["normal", "hover", "pressed", "focus", "disabled", "hover_pressed"]:
 		add_theme_stylebox_override(style_name, StyleBoxEmpty.new())
 
-	_frame = TextureRect.new()
-	_frame.name = "SelectFrame"
-	_frame.texture = FRAME_TEXTURE
-	_frame.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_frame.offset_left = -frame_outset.x
-	_frame.offset_right = frame_outset.x
-	_frame.offset_top = -frame_outset.y
-	_frame.offset_bottom = frame_outset.y
-	_frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_frame.stretch_mode = TextureRect.STRETCH_SCALE
-	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_frame.visible = false
-	add_child(_frame)
-
-	_sfx = AudioStreamPlayer.new()
-	_sfx.name = "SelectSound"
-	_sfx.stream = SELECT_SOUND
-	add_child(_sfx)
+	# A scene can place its own SelectFrame / SelectSound children (journal_row.tscn); the main and pause
+	# menu buttons have none and get them built here.
+	_frame = get_node_or_null("SelectFrame") as TextureRect
+	if _frame == null:
+		_frame = _build_frame()
+	_sfx = get_node_or_null("SelectSound") as AudioStreamPlayer
+	if _sfx == null:
+		_sfx = _build_sound()
 
 	focus_entered.connect(_on_focus_entered)
 	focus_exited.connect(_on_focus_exited)
@@ -89,3 +82,26 @@ func _apply_dimming() -> void:
 	var c := Color(1, 1, 1, DIMMED_ALPHA if inert else 1.0)
 	for color_name: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
 		add_theme_color_override(color_name, c)
+
+func _build_frame() -> TextureRect:
+	var frame := TextureRect.new()
+	frame.name = "SelectFrame"
+	frame.texture = FRAME_TEXTURE
+	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	frame.offset_left = -frame_outset.x
+	frame.offset_right = frame_outset.x
+	frame.offset_top = -frame_outset.y
+	frame.offset_bottom = frame_outset.y
+	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	frame.stretch_mode = TextureRect.STRETCH_SCALE
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.visible = false
+	add_child(frame)
+	return frame
+
+func _build_sound() -> AudioStreamPlayer:
+	var sfx := AudioStreamPlayer.new()
+	sfx.name = "SelectSound"
+	sfx.stream = SELECT_SOUND
+	add_child(sfx)
+	return sfx
