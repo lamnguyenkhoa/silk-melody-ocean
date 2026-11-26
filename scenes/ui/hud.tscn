@@ -1,9 +1,11 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cxihy1onvo2xx"]
 
-[ext_resource type="Script" path="res://scenes/ui/hud.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/ui/SilkBar.png" id="2"]
-[ext_resource type="Texture2D" path="res://assets/ui/tools/RadialProgressBar.png" id="3"]
-[ext_resource type="Texture2D" path="res://assets/props/CopperShard.png" id="4"]
+[ext_resource type="Script" uid="uid://blm638788xxdh" path="res://scenes/ui/hud.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://xim35atnnini" path="res://assets/ui/SilkBar.png" id="2"]
+[ext_resource type="PackedScene" uid="uid://dl8gy1o2jo87i" path="res://scenes/ui/hud/hud_mask.tscn" id="2_oj5la"]
+[ext_resource type="Texture2D" uid="uid://cigynh1mtvsrh" path="res://assets/ui/tools/RadialProgressBar.png" id="3"]
+[ext_resource type="Texture2D" uid="uid://dieny8y78d6lt" path="res://assets/props/CopperShard.png" id="4"]
+[ext_resource type="PackedScene" uid="uid://btii7iapwvjcs" path="res://scenes/ui/hud/hud_silk_segment.tscn" id="4_gss2c"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1"]
 atlas = ExtResource("2")
@@ -13,105 +15,139 @@ region = Rect2(0, 0, 14, 32)
 atlas = ExtResource("2")
 region = Rect2(82, 0, 14, 32)
 
-[node name="HUD" type="CanvasLayer"]
+[node name="HUD" type="CanvasLayer" unique_id=1350843270]
 script = ExtResource("1")
 
-[node name="Masks" type="HBoxContainer" parent="."]
+[node name="Masks" type="HBoxContainer" parent="." unique_id=1266140142]
 offset_left = 43.8
 offset_top = 5.4
 offset_right = 43.8
 offset_bottom = 5.4
 theme_override_constants/separation = 5
 
-[node name="SilkBar" type="HBoxContainer" parent="."]
-offset_left = 24.6
-offset_top = 32.0
-offset_right = 24.6
-offset_bottom = 32.0
+[node name="HudMask" parent="Masks" unique_id=1633498202 instance=ExtResource("2_oj5la")]
+layout_mode = 2
+
+[node name="HudMask2" parent="Masks" unique_id=689466386 instance=ExtResource("2_oj5la")]
+layout_mode = 2
+
+[node name="HudMask3" parent="Masks" unique_id=947448610 instance=ExtResource("2_oj5la")]
+layout_mode = 2
+
+[node name="HudMask4" parent="Masks" unique_id=319775797 instance=ExtResource("2_oj5la")]
+layout_mode = 2
+
+[node name="HudMask5" parent="Masks" unique_id=8480874 instance=ExtResource("2_oj5la")]
+layout_mode = 2
+
+[node name="SilkBar" type="HBoxContainer" parent="." unique_id=2009877882]
+offset_left = 20.0
+offset_top = 75.0
+offset_right = 90.0
+offset_bottom = 107.0
 theme_override_constants/separation = 0
 
-[node name="LeftCap" type="TextureRect" parent="SilkBar"]
+[node name="LeftCap" type="TextureRect" parent="SilkBar" unique_id=127085719]
 custom_minimum_size = Vector2(7, 12)
 layout_mode = 2
 texture = SubResource("AtlasTexture_1")
-expand_mode = 1
-stretch_mode = 0
 
-[node name="Segments" type="HBoxContainer" parent="SilkBar"]
+[node name="Segments" type="HBoxContainer" parent="SilkBar" unique_id=1870574324]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="RightCap" type="TextureRect" parent="SilkBar"]
+[node name="HudSilkSegment" parent="SilkBar/Segments" unique_id=58529684 instance=ExtResource("4_gss2c")]
+layout_mode = 2
+
+[node name="HudSilkSegment2" parent="SilkBar/Segments" unique_id=841757235 instance=ExtResource("4_gss2c")]
+layout_mode = 2
+
+[node name="HudSilkSegment3" parent="SilkBar/Segments" unique_id=340036052 instance=ExtResource("4_gss2c")]
+layout_mode = 2
+
+[node name="HudSilkSegment4" parent="SilkBar/Segments" unique_id=391503179 instance=ExtResource("4_gss2c")]
+layout_mode = 2
+
+[node name="HudSilkSegment5" parent="SilkBar/Segments" unique_id=101756114 instance=ExtResource("4_gss2c")]
+layout_mode = 2
+
+[node name="HudSilkSegment6" parent="SilkBar/Segments" unique_id=1912899912 instance=ExtResource("4_gss2c")]
+layout_mode = 2
+
+[node name="HudSilkSegment7" parent="SilkBar/Segments" unique_id=464210800 instance=ExtResource("4_gss2c")]
+layout_mode = 2
+
+[node name="RightCap" type="TextureRect" parent="SilkBar" unique_id=671373304]
 custom_minimum_size = Vector2(7, 12)
 layout_mode = 2
 texture = SubResource("AtlasTexture_2")
-expand_mode = 1
-stretch_mode = 0
 
-[node name="Shards" type="Control" parent="."]
+[node name="Shards" type="Control" parent="." unique_id=340360628]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 6.8
-offset_top = 50.8
-offset_right = 6.8
-offset_bottom = 50.8
+offset_left = 20.0
+offset_top = 123.0
+offset_right = 20.0
+offset_bottom = 123.0
 
-[node name="Icon" type="TextureRect" parent="Shards"]
+[node name="Icon" type="TextureRect" parent="Shards" unique_id=1297072360]
+custom_minimum_size = Vector2(15, 15)
 layout_mode = 0
 offset_right = 15.0
 offset_bottom = 15.0
-custom_minimum_size = Vector2(15, 15)
 texture = ExtResource("4")
-expand_mode = 1
-stretch_mode = 0
 
-[node name="Count" type="Label" parent="Shards"]
+[node name="Count" type="Label" parent="Shards" unique_id=430212960]
 layout_mode = 0
-offset_left = 18.6
-offset_top = 2.0
-offset_right = 40.0
-offset_bottom = 13.0
+offset_left = 37.0
+offset_top = 10.0
+offset_right = 58.4
+offset_bottom = 33.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 8
 text = "0"
 
-[node name="ToolCircle" type="Control" parent="."]
+[node name="ToolCircle" type="Control" parent="." unique_id=447897015]
 visible = false
+custom_minimum_size = Vector2(20, 20)
 layout_mode = 3
 anchors_preset = 0
-offset_left = 43.8
-offset_top = 48.2
-offset_right = 43.8
-offset_bottom = 48.2
+offset_left = 100.0
+offset_top = 114.0
+offset_right = 155.0
+offset_bottom = 167.0
 mouse_filter = 2
 
-[node name="BG" type="TextureRect" parent="ToolCircle"]
-layout_mode = 0
-offset_right = 20.0
-offset_bottom = 20.0
-mouse_filter = 2
-modulate = Color(0, 0, 0, 1)
-texture = ExtResource("3")
-expand_mode = 1
-stretch_mode = 0
-
-[node name="Fill" type="TextureProgressBar" parent="ToolCircle"]
-layout_mode = 0
-offset_right = 128.0
-offset_bottom = 128.0
-scale = Vector2(0.15625, 0.15625)
+[node name="Fill" type="TextureProgressBar" parent="ToolCircle" unique_id=782888805]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 max_value = 1.0
 step = 0.0
+value = 0.5
 fill_mode = 4
 radial_initial_angle = 180.0
+nine_patch_stretch = true
+texture_under = ExtResource("3")
 texture_progress = ExtResource("3")
+tint_under = Color(0, 0, 0, 1)
 
-[node name="ToolImage" type="TextureRect" parent="ToolCircle"]
-layout_mode = 0
-offset_right = 20.0
-offset_bottom = 20.0
+[node name="ToolImage" type="TextureRect" parent="ToolCircle" unique_id=1896408562]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.499998
+offset_top = -19.500002
+offset_right = 19.499998
+offset_bottom = 19.500002
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
-stretch_mode = 0

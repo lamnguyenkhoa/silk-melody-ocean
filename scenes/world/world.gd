@@ -20,7 +20,7 @@ const TILE_SIZE: float = 16.0
 ## Spawn the dummy a bit above the floor and let gravity settle it.
 const DUMMY_DROP_HEIGHT: float = 24.0
 ## Debug builds only: training dummies spawn in this room (the start room) and nowhere else.
-const DEBUG_DUMMY_ROOM: String = "DirtCave0"
+const DEBUG_DUMMY_ROOM: String = ""
 
 @onready var room_container: Node2D = $RoomContainer
 @onready var player: Player = $Player

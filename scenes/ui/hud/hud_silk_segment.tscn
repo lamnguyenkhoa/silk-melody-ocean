@@ -1,12 +1,10 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://btii7iapwvjcs"]
 
 [ext_resource type="Texture2D" path="res://scenes/ui/hud/silk_empty.tres" id="1"]
 
-[node name="HudSilkSegment" type="TextureRect"]
+[node name="HudSilkSegment" type="TextureRect" unique_id=58529684]
 custom_minimum_size = Vector2(3, 12)
 offset_right = 3.0
 offset_bottom = 12.0
 mouse_filter = 2
 texture = ExtResource("1")
-expand_mode = 1
-stretch_mode = 0

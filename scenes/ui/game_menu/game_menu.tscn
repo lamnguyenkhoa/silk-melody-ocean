@@ -1,36 +1,35 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://gtmffy3sis0o"]
 
-[ext_resource type="Script" path="res://scenes/ui/game_menu/game_menu.gd" id="1"]
-[ext_resource type="AudioStream" path="res://assets/sfx/open_inventory.mp3" id="2"]
-[ext_resource type="AudioStream" path="res://assets/sfx/close_inventory.wav" id="3"]
-[ext_resource type="AudioStream" path="res://assets/sfx/menu_button.ogg" id="4"]
-[ext_resource type="AudioStream" path="res://assets/sfx/inventory_equip.ogg" id="5"]
+[ext_resource type="Script" uid="uid://da8pfbjoymvyf" path="res://scenes/ui/game_menu/game_menu.gd" id="1"]
+[ext_resource type="AudioStream" uid="uid://dwli5e6j0k1cg" path="res://assets/sfx/open_inventory.mp3" id="2"]
+[ext_resource type="AudioStream" uid="uid://b3kkaq4jvf7ue" path="res://assets/sfx/close_inventory.wav" id="3"]
+[ext_resource type="AudioStream" uid="uid://cf55g0hjf5d55" path="res://assets/sfx/menu_button.ogg" id="4"]
+[ext_resource type="AudioStream" uid="uid://bsywhsqhpn4ip" path="res://assets/sfx/inventory_equip.ogg" id="5"]
 [ext_resource type="Theme" path="res://scenes/ui/game_menu/game_menu_theme.tres" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_menu/pages/inventory_page.tscn" id="7"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_menu/pages/talisman_page.tscn" id="8"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_menu/pages/map_page.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_menu/pages/journal_page.tscn" id="10"]
 
-[node name="GameMenu" type="CanvasLayer"]
+[node name="GameMenu" type="CanvasLayer" unique_id=1878964049]
 layer = 25
-visible = false
 script = ExtResource("1")
 
-[node name="Sfx" type="Node" parent="."]
+[node name="Sfx" type="Node" parent="." unique_id=257536689]
 
-[node name="OpenInventory" type="AudioStreamPlayer" parent="Sfx"]
+[node name="OpenInventory" type="AudioStreamPlayer" parent="Sfx" unique_id=1983050140]
 stream = ExtResource("2")
 
-[node name="CloseInventory" type="AudioStreamPlayer" parent="Sfx"]
+[node name="CloseInventory" type="AudioStreamPlayer" parent="Sfx" unique_id=759269517]
 stream = ExtResource("3")
 
-[node name="Moving" type="AudioStreamPlayer" parent="Sfx"]
+[node name="Moving" type="AudioStreamPlayer" parent="Sfx" unique_id=1320849996]
 stream = ExtResource("4")
 
-[node name="Pressed" type="AudioStreamPlayer" parent="Sfx"]
+[node name="Pressed" type="AudioStreamPlayer" parent="Sfx" unique_id=2071478859]
 stream = ExtResource("5")
 
-[node name="Holder" type="Control" parent="."]
+[node name="Holder" type="Control" parent="." unique_id=1279462000]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -40,41 +39,36 @@ grow_vertical = 2
 mouse_filter = 2
 theme = ExtResource("6")
 
-[node name="Background" type="ColorRect" parent="Holder"]
+[node name="Background" type="ColorRect" parent="Holder" unique_id=1985720347]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
-color = Color(0.0, 0.0, 0.0, 0.8627451)
+color = Color(0, 0, 0, 0.8627451)
 
-[node name="InventoryGroup" parent="Holder" instance=ExtResource("7")]
-layout_mode = 1
+[node name="InventoryGroup" parent="Holder" unique_id=1785265242 instance=ExtResource("7")]
 visible = false
-
-[node name="TalismanGroup" parent="Holder" instance=ExtResource("8")]
 layout_mode = 1
-visible = false
 
-[node name="MapGroup" parent="Holder" instance=ExtResource("9")]
+[node name="TalismanGroup" parent="Holder" unique_id=1041821422 instance=ExtResource("8")]
+visible = false
 layout_mode = 1
-visible = false
 
-[node name="JournalGroup" parent="Holder" instance=ExtResource("10")]
+[node name="MapGroup" parent="Holder" unique_id=1107366274 instance=ExtResource("9")]
+visible = false
 layout_mode = 1
-visible = false
 
-[node name="MenuTab" type="Control" parent="Holder"]
-layout_mode = 0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
+[node name="JournalGroup" parent="Holder" unique_id=928427788 instance=ExtResource("10")]
+visible = false
+layout_mode = 1
+
+[node name="MenuTab" type="Control" parent="Holder" unique_id=1491870570]
+anchors_preset = 0
 mouse_filter = 2
 
-[node name="Inventory" type="Label" parent="Holder/MenuTab"]
+[node name="Inventory" type="Label" parent="Holder/MenuTab" unique_id=769591611]
 layout_mode = 0
 offset_left = 48.0
 offset_top = 8.0
@@ -85,7 +79,7 @@ text = "Inventory"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Tools" type="Label" parent="Holder/MenuTab"]
+[node name="Tools" type="Label" parent="Holder/MenuTab" unique_id=2086673853]
 layout_mode = 0
 offset_left = 124.0
 offset_top = 8.0
@@ -96,7 +90,7 @@ text = "Tools"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Map" type="Label" parent="Holder/MenuTab"]
+[node name="Map" type="Label" parent="Holder/MenuTab" unique_id=1245076959]
 layout_mode = 0
 offset_left = 200.0
 offset_top = 8.0
@@ -107,7 +101,7 @@ text = "Map"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Journal" type="Label" parent="Holder/MenuTab"]
+[node name="Journal" type="Label" parent="Holder/MenuTab" unique_id=1497850169]
 layout_mode = 0
 offset_left = 276.0
 offset_top = 8.0
@@ -118,11 +112,10 @@ text = "Journal"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Underline" type="ColorRect" parent="Holder/MenuTab"]
+[node name="Underline" type="ColorRect" parent="Holder/MenuTab" unique_id=617615201]
 layout_mode = 0
 offset_left = 134.0
 offset_top = 17.0
 offset_right = 154.0
 offset_bottom = 18.0
 mouse_filter = 2
-color = Color(1.0, 1.0, 1.0, 1.0)

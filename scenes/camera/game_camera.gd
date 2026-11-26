@@ -6,8 +6,6 @@ extends Camera2D
 
 ## Pixels per tile (room limits come from tile cells).
 const TILE_SIZE: int = 16
-## Unity: lens OrthographicSize 6 -> 12 u = 192 px visible height; viewport is 216 px tall.
-const CAMERA_ZOOM: float = 216.0 / 192.0
 ## Unity: CinemachineFramingTransposer X/Y damping 1 -> approx. Godot smoothing speed (plan 7.4).
 const FOLLOW_SMOOTHING_SPEED: float = 5.0
 ## Unity: m_DeadZoneWidth/Height 0.2 (central 20 % of the screen, i.e. +-10 % from centre).
@@ -32,7 +30,6 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	process_callback = Camera2D.CAMERA2D_PROCESS_PHYSICS
 	_last_real_time = Time.get_ticks_msec() / 1000.0
-	zoom = Vector2.ONE * CAMERA_ZOOM
 	position_smoothing_enabled = true
 	position_smoothing_speed = FOLLOW_SMOOTHING_SPEED
 	var margin: float = DEAD_ZONE
